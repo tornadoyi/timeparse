@@ -40,10 +40,12 @@ def demo(args):
     ]
 
     special_case = [
-        u"15年3月24日2点30分59秒",
+        u"上上周",
+        u"上周2",
+        u"上上周2",
     ]
 
-    for case in cases:
+    for case in special_case:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)

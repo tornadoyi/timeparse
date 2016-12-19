@@ -156,7 +156,7 @@ class TimeChunk(TimeCell):
         self.units = []
         self.values = []
         self.directs = []
-        self.adds(units, values, directs or [TimeDirect()] * len(units))
+        self.add(units, values, directs or [TimeDirect()] * len(units))
 
 
     def __str__(self):
@@ -171,26 +171,28 @@ class TimeChunk(TimeCell):
         return TimeCell.__str__(self) + "   " + "t:({0})  d:({1})".format(v, d)
 
 
-    def adds(self, units, values, directs = None):
-        if directs == None: directs = [TimeDirect()] * len(units)
-        for i in xrange(len(units)): self.add(units[i], values[i], directs[i])
-
 
     def add(self, unit, value,  direct = None):
+        def _add(unit, value, direct):
+            for i in xrange(len(self.units) - 1, -1, -1):
+                u = self.units[i]
+                assert unit != u
+                if unit < u: break
+                if unit > u: continue
+                self.units.insert(i, unit)
+                self.values.insert(i, value)
+                self.directs.insert(i, direct)
+                return
 
-        for i in xrange(len(self.units)-1, -1, -1):
-            u = self.units[i]
-            assert unit != u
-            if unit < u: break
-            if unit > u: continue
-            self.units.insert(i, unit)
-            self.values.insert(i, value)
-            self.directs.insert(i, direct)
-            return
+            self.values.append(value)
+            self.units.append(unit)
+            self.directs.append(direct)
 
-        self.values.append(value)
-        self.units.append(unit)
-        self.directs.append(direct)
+        if type(unit) == list:
+            direct = direct or [TimeDirect()] * len(unit)
+            for i in xrange(len(unit)): self.add(unit[i], value[i], direct[i])
+        else:
+            _add(unit, value, direct or TimeDirect())
 
 
     def has_unit(self, unit):

@@ -258,7 +258,7 @@ class holiday_merger(merger):
 
         day_direct = TimeDirect(td.relative.parent, -1) if this.day < 0 else TimeDirect()
         start = Time(this.sentence, this.pos_span, [td.unit.month], [this.month], [TimeDirect()], this.lunar)
-        start.adds(other.units, other.values, other.directs)
+        start.add(other.units, other.values, other.directs)
 
         return start
 
@@ -295,7 +295,7 @@ class time_merger(merger):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.adds(other.units, other.values, other.directs)
+        t.add(other.units, other.values, other.directs)
         if other.lunar: t.lunar = other.lunar
         t.pos_span = (st, ed)
         return t
@@ -340,7 +340,7 @@ class duration_merger(merger):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.adds(other.units, other.values, other.directs)
+        t.add(other.units, other.values, other.directs)
         if not other.directs[0].none:
             other.directs[0].value *= -1
             other.directs[0].relative = td.relative.parent

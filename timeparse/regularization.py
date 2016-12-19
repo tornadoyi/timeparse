@@ -82,24 +82,15 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_collector(t):
             # direct that relative to now is needn't padding
             # weekday without direct is needn't padding
-            if (t.directs[0] and t.directs[0].relative == 0) or \
-                (time.units[0] == td.unit.week and t.directs[0] == None): return t
+            if t.directs[0].now or time.units[0] == td.unit.week: return t
 
-            values = []; units = []; directs = []
             end_unit = int(math.ceil(time.units[0])) - 1
             for i in xrange(end_unit, -1, -1):
                 v = args.collector.find_nearest_unit(time.pos_span, i)
                 if v == None: break
                 u_idx = v.unit_index(i)
-                values.append(v.values[u_idx])
-                units.append(i)
-                directs.append(v.directs[u_idx])
+                t.add(i, v.values[u_idx], v.directs[u_idx])
 
-            t = copy.deepcopy(time)
-            values.reverse(); units.reverse(); directs.reverse()
-            t.values = values + t.values
-            t.units = units + t.units
-            t.directs = directs + t.directs
             return t
 
 
@@ -131,7 +122,7 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_preference(t):
             # direct that relative to now is needn't padding
             # convert week
-            if (t.directs[0] and t.directs[0].relative == 0): return t
+            if t.directs[0].now: return t
             values = args.padding(t.values[0], t.units[0], t.pos_span, args)
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
@@ -140,13 +131,8 @@ class TimeRegularization(ChunkRegularization):
             for i in xrange(len(t.units)):
                 unit = t.units[i]
                 if unit <= len(values) - 1: continue
-                values.append(t.values[i])
-                units.append(t.units[i])
-                directs.append(t.directs[i])
+                t.add(t.units[i], t.values[i], t.directs[i])
 
-            t.values = values
-            t.units = units
-            t.directs = directs
             return t
 
         # copy time
@@ -178,6 +164,7 @@ class TimeRegularization(ChunkRegularization):
             u, v, d = time.units[i], time.values[i], time.directs[i]
 
             # padding with preference
+            '''
             if d == None:
                 if u == td.unit.week:
                     assert False
@@ -188,11 +175,12 @@ class TimeRegularization(ChunkRegularization):
                 vec = args.padding(v, u, time.pos_span, args)
                 fill_vector(vec, vector, end=u + 1)
                 continue
+            '''
 
 
             # dropout directs
             # relative to now
-            if d.relative == 0:
+            if d.now:
                 if u == td.unit.week:
                     start = args.timecore.weekday(v)
                     end = tf.delta_time(start, td.unit.day, 7 * d.value)

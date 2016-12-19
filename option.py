@@ -1,6 +1,6 @@
 import argparse
 from pyplus import *
-from timeparse.time_func import TimeCore
+from timeparse.time_func_ext import TimeCore
 
 def str2bool(v):
   return v.lower() in ("yes", "true", "t", "1")
