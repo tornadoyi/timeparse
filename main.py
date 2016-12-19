@@ -40,13 +40,10 @@ def demo(args):
     ]
 
     special_case = [
-        #u"上季度前三天",
-        u"国庆后2小时"
-        #u"3月倒数第二天"
-        #u"前天"
+        u"15年3月24日2点30分59秒",
     ]
 
-    for case in special_case:
+    for case in cases:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)

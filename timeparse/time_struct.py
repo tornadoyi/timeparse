@@ -180,7 +180,8 @@ class TimeChunk(TimeCell):
 
         for i in xrange(len(self.units)-1, -1, -1):
             u = self.units[i]
-            if unit <= u: break
+            assert unit != u
+            if unit < u: break
             if unit > u: continue
             self.units.insert(i, unit)
             self.values.insert(i, value)

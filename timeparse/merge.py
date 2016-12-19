@@ -93,7 +93,7 @@ class digit_merger(merger):
         if not this.adjacent(other): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         if this.quantity or other.value == td.unit.week:
-           return  Duration(str, (st, ed), [this.value], [other.value])
+           return  Duration(str, (st, ed), [other.value], [this.value])
 
         else:
             return Time(str, (st, ed), [other.value], [this.value])
@@ -295,7 +295,7 @@ class time_merger(merger):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.adds(other.values, other.units, other.directs)
+        t.adds(other.units, other.values, other.directs)
         if other.lunar: t.lunar = other.lunar
         t.pos_span = (st, ed)
         return t
@@ -509,7 +509,7 @@ class merge_manager():
 
 
     def print_times(self, times, title):
-        #return
+        return
         print('------------ {0} -------------'.format(title))
         for t in times:
             print(t)
