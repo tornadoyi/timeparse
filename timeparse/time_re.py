@@ -177,13 +177,13 @@ class week_re(time_re):
         unit = self.parse_unit(m.group(1))
         digit = self.parse_digits(m.group(2))
 
-        return Time(str, (st, ed), [digit], [unit])
+        return Time(str, (st, ed), [unit], [digit])
 
 
     def sunday(self, m, args):
         # check
         str, st, ed = self.parse_match(m)
-        return Time(str, (st, ed), [7], [td.unit.week])
+        return Time(str, (st, ed), [td.unit.week], [7])
 
 
 # relation
@@ -288,6 +288,9 @@ class holiday_re(time_re):
         # parse
         (type, month, day, duration_day ) = self.parse_holiday(m.group(1))
         time = Holiday(str, (st, ed), month, day, duration_day, lunar=(type == td.calendar.lunar))
+        #start = Time(str, (st, ed), [td.unit.month, td.unit.day], [month, day])
+        #duration = Duration(str, (st, ed), [td.unit.day], [duration_day], [TimeDirect(td.relative.parent, 1)])
+        #time = StartDuration(str, (st, ed), start=start, duration=duration)
         return time
 
 
@@ -304,33 +307,11 @@ class seasons_re(time_re):
 
         # parse
         (start_month, end_month ) = self.parse_season(m.group(1))
-        start = Time(str, (st, ed), [start_month], [td.unit.month])
+        start = Time(str, (st, ed), [td.unit.month], [start_month])
         duration = Duration(str, (st, ed), [end_month - start_month + 1], [td.unit.month])
         return StartDuration(str, (st, ed), start, duration)
 
 
-
-# quarterly
-class quarterly_re(time_re):
-    def __init__(self):
-        time_re.__init__(self)
-        ex = u"((?:{0}))((?:{1}))".format(
-            td.split_texts(td.wordtype.digit),
-            td.split_texts(td.wordtype.quarterly))
-        self.add_re(ex, self.process)
-
-    def process(self, m, args):
-        # check
-        str, st, ed = self.parse_match(m)
-
-        # parse
-        digit = self.parse_digits(m.group(1))
-        if digit > 4 or digit <= 0: return
-
-        start_month = 1 + (digit -1) * 3
-        start = Time(str, (st, ed), [start_month], [td.unit.month])
-        duration = Duration(str, (st, ed), [3], [td.unit.month])
-        return StartDuration(str, (st, ed), start, duration)
 
 
 
@@ -355,7 +336,7 @@ class lunar_re(time_re):
         # parse
         month = self.parse_lunar_month(m.group(1))
 
-        return Time(str, (st, ed), [month], [td.unit.month], lunar=True)
+        return Time(str, (st, ed), [td.unit.month], [month], lunar=True)
 
     def process_lunar_day(self, m, args):
         # check
@@ -365,7 +346,7 @@ class lunar_re(time_re):
         day = self.parse_lunar_month(m.group(1))
         digit = self.parse_digits(m.group(2))
 
-        return Time(str, (st, ed), [digit], [td.unit.day], lunar=True)
+        return Time(str, (st, ed),  [td.unit.day], [digit], lunar=True)
 
 class format_re(time_re):
     colon = [u':', u'：']
@@ -467,7 +448,7 @@ class format_re(time_re):
         for i in xrange(len(v)):
             values.append(v[i])
             units.append(unit_start + i)
-        return (values, units)
+        return (units, values)
 
 
 
@@ -489,7 +470,6 @@ class parser(object):
         self._classes.append(calendar_re())
         self._classes.append(holiday_re())
         self._classes.append(seasons_re())
-        self._classes.append(quarterly_re())
         self._classes.append(lunar_re())
         self._classes.append(format_re())
 

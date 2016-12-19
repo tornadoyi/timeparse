@@ -4,6 +4,7 @@ import re
 import math
 import copy
 
+from pyplus import *
 import time_define as td
 from time_struct import *
 
@@ -17,6 +18,7 @@ command_keep_3 = (command.keep, command.keep, command.keep)
 
 command_delete_self_2 = (command.delete, command.keep)
 command_delete_self_3 = (command.delete, command.keep, command.keep)
+
 
 
 class merger():
@@ -34,26 +36,20 @@ class merger():
     def do(self, args, front, this, back, do_front, do_back, do_both):
 
         while do_front and len(self._process_front) > 0:
-            func = self._process_front.get(front.__class__)
-            if not func: break
-            times = func(args, this, front)
+            times = self.do_front(args, this, front)
             if times == command_keep_2: break
             elif isinstance(times, TimeCell): return (command.delete, times, command.keep)
             else: return (times[1], times[0], command.keep)
 
         while do_back and len(self._process_back) > 0:
-            func = self._process_back.get(back.__class__)
-            if not func: break
-            times = func(args, this, back)
+            times = self.do_back(args, this, back)
             if times == command_keep_2: break
             elif isinstance(times, TimeCell): return (command.keep, times, command.delete)
             else: return (command.keep, times[0], times[1])
 
 
         while do_both and len(self._process_both) > 0:
-            func = self._process_both.get( (front.__class__, back.__class__) )
-            if not func: break
-            times = func(args, this, front, back)
+            times = self.do_both(args, this, front, back)
             if times == None: break
             elif isinstance(times, TimeCell): return (command.delete, times, command.delete)
             else:
@@ -62,6 +58,20 @@ class merger():
         return command_keep_3
 
 
+    def do_front(self, args, this, other):
+        func = self._process_front.get(other.__class__)
+        if not func: return command_keep_2
+        return func(args, this, other)
+
+    def do_back(self, args, this, other):
+        func = self._process_back.get(other.__class__)
+        if not func: return command_keep_2
+        return func(args, this, other)
+
+    def do_both(self, args, this, front, back):
+        func = self._process_both.get((front.__class__, back.__class__))
+        if not func: return command_keep_2
+        return func(args, this, front, back)
 
     def concat_cell_info(self, *cells):
         min = sys.maxint
@@ -73,7 +83,7 @@ class merger():
 
 
 
-
+@singleton
 class digit_merger(merger):
     def __init__(self):
         merger.__init__(self)
@@ -86,14 +96,17 @@ class digit_merger(merger):
            return  Duration(str, (st, ed), [this.value], [other.value])
 
         else:
-            return Time(str, (st, ed),  [this.value], [other.value])
+            return Time(str, (st, ed), [other.value], [this.value])
 
 
 
+
+@singleton
 class direct_merger(merger):
     def __init__(self):
         merger.__init__(self)
         self.add_back_process(Unit, self.unit_process) # 上 周
+
         self.add_back_process(Time, self.time_back_process) # 前 三周 / 上 周三
         self.add_front_process(Time, self.time_front_process)  # 三周前 / 周三前
         self.add_back_process(Duration, self.duration_back_process) # 前 三个月
@@ -110,7 +123,7 @@ class direct_merger(merger):
         str, st, ed = self.concat_cell_info(this, other)
         value = np.abs(v)
         direct = TimeDirect(this.relative, v / value if v != 0 else 0)
-        return Time(str, (st, ed), [value], [other.value], [direct])
+        return Time(str, (st, ed), [other.value], [value], [direct])
 
     def time_back_process(self, args, this, other): return self._convert(args, this, other, True)
 
@@ -124,7 +137,7 @@ class direct_merger(merger):
     def _convert(self, args, this, other, this_first):
         # check
         if not this.adjacent(other): return command_keep_2
-        if other.directs[0] != None: return command_keep_2
+        if not other.directs[0].none: return command_keep_2
         info = this.info_with_front if this_first else this.info_with_back
         if info == None: return command_keep_2
 
@@ -137,7 +150,7 @@ class direct_merger(merger):
             directs = copy.deepcopy(other.directs)
             d = this.info_with_unit
             directs[0] = TimeDirect(this.relative, d)
-            return Time(str, (st, ed), other.values, other.units, directs)
+            return Time(str, (st, ed), other.units,  other.values, directs)
 
         # span
         elif type(info) == tuple:
@@ -152,9 +165,9 @@ class direct_merger(merger):
 
                 # week check
                 if this_first and other.__class__ == Time and td.unit.week in other.units:
-                    return Time(str, (st, ed), other.values, other.units, directs)
+                    return Time(str, (st, ed), other.units, other.values, directs)
                 else:
-                    return Duration(str, (st, ed), other.values, other.units, directs)
+                    return Duration(str, (st, ed), other.units, other.values, directs)
 
 
             # -inf ~ x
@@ -178,11 +191,11 @@ class direct_merger(merger):
             directs = copy.deepcopy(other.directs)
             d = info
             directs[0] = TimeDirect(this.relative, d)
-            return Time(str, (st, ed), other.values, other.units, directs)
+            return Time(str, (st, ed), other.units, other.values,  directs)
 
 
 
-
+@singleton
 class calendar_merger(merger):
     def __init__(self):
         merger.__init__(self)
@@ -198,37 +211,59 @@ class calendar_merger(merger):
 
 
 
+@singleton
 class holiday_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_back_process(Duration, self.duration_process)
+        self.add_back_process(Duration, self.duration_process) # 国庆 后三天
+        self.add_back_process(Time, self.time_process)  # 国庆 倒数第三天
 
 
     def duration_process(self, args, this, other):
+        if other.units[0] < td.unit.day: return command_keep_2
+
         str, st, ed = self.concat_cell_info(this, other)
+        duration = copy.deepcopy(other)
+        direct = duration.directs[0]
 
-        # create startduration template
-        template = this.to_start_duration()
-        start = template.start
-        duration = other
-
-        # reverse duration direct
-        direct = other.directs[0]
-        if direct != None:# and direct.relative == 0:
+        # gen duration
+        if not direct.none:
             direct.value *= -1
-            direct.relative = -1
+            direct.relative = td.relative.parent
 
-        # back of days
-        if direct != None and direct.value < 0:
-            assert this.day > 0
-            day_idx = start.unit_index(td.unit.day)
-            start.values[day_idx] = this.day + this.duration - 1
+        # gen start
+        day_direct = TimeDirect(td.relative.parent, -1) if this.day < 0 else TimeDirect()
+        if direct.value >= 0:
+            start = Time(this.sentence, this.pos_span, [td.unit.month, td.unit.day], [this.month, this.day], [TimeDirect(), day_direct], this.lunar)
+        else:
+            start = Time(this.sentence, this.pos_span, [td.unit.month, td.unit.day], [this.month, this.day+this.duration-1], [TimeDirect(), day_direct], this.lunar)
 
         return StartDuration(str, (st, ed), start, duration)
 
 
+    def time_process(self, args, this, other):
+        if other.units[0] < td.unit.day : return command_keep_2
+
+        str, st, ed = self.concat_cell_info(this, other)
+        other = copy.deepcopy(other)
+
+        day_idx = other.unit_index(td.unit.day)
+        if day_idx != None and other.directs[day_idx].value < 0:
+            assert this.day > 0
+            end_day = this.day + this.duration - 1
+            delta = other.directs[day_idx].value * other.values[day_idx]
+            other.values[day_idx] = end_day + delta
+            other.directs[day_idx] = td.relative.none
 
 
+        day_direct = TimeDirect(td.relative.parent, -1) if this.day < 0 else TimeDirect()
+        start = Time(this.sentence, this.pos_span, [td.unit.month], [this.month], [TimeDirect()], this.lunar)
+        start.adds(other.units, other.values, other.directs)
+
+        return start
+
+
+@singleton
 class speical_hour_merger(merger):
     def __init__(self):
         merger.__init__(self)
@@ -248,20 +283,23 @@ class speical_hour_merger(merger):
 
 
 
-
+@singleton
 class time_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_back_process(Time, self.time_process) # 3月 4日
+        self.add_back_process(Time, self.time_process) # 3月 4日 / 3月 倒数第二天
         self.add_back_process(Duration, self.duration_process) # 3月 前5天
         self.add_back_process(Digit, self.digit_process) # 8月15  l1 eat l0
-        self.add_back_process(StartDuration, self.start_duration_process)  # 2016年 第一季度
 
     def time_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
+        str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.merge(other)
+        t.adds(other.values, other.units, other.directs)
+        if other.lunar: t.lunar = other.lunar
+        t.pos_span = (st, ed)
         return t
+
 
     def duration_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
@@ -269,9 +307,8 @@ class time_merger(merger):
         start = copy.deepcopy(this)
         duration = copy.deepcopy(other)
         direct = duration.directs[0]
-        if direct != None:# and direct.relative == 0:
-            direct.value *= -1
-            direct.relative = -1
+        direct.value *= -1
+        direct.relative = td.relative.parent
 
         return StartDuration(str, (st, ed), start=start, duration=duration)
 
@@ -291,32 +328,30 @@ class time_merger(merger):
         return t
 
 
-    def start_duration_process(self, args, this, other):
-        if this.has_unit(other.start.units): return command_keep_2
-        str, st, ed = self.concat_cell_info(this, other)
-        start = copy.deepcopy(other.start)
-        duration = copy.deepcopy(other.duration)
-        start.merge(this)
-        return StartDuration(str, (st, ed), start, duration)
 
-
-
+@singleton
 class duration_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_back_process(Duration, self.Duration_process) # 3个月零5天
-        self.add_back_process(Time, self.Duration_process)  # 3个月零5天
+        self.add_back_process(Duration, self.Duration_process) # 3个月 零2个小时
+        self.add_back_process(Time, self.Duration_process)  # 3个月 零5天
 
     def Duration_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
+        str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.merge(other)
+        t.adds(other.units, other.values, other.directs)
+        if not other.directs[0].none:
+            other.directs[0].value *= -1
+            other.directs[0].relative = td.relative.parent
+
+        t.pos_span = (st, ed)
         return t
 
 
 
 
-
+@singleton
 class relation_span_merger(merger):
     def __init__(self):
         merger.__init__(self)
@@ -333,7 +368,7 @@ class relation_span_merger(merger):
 
 
 
-
+@singleton
 class relation_start_merger(merger):
     def __init__(self):
         merger.__init__(self)
@@ -347,33 +382,24 @@ class relation_start_merger(merger):
 
 
 
-
+@singleton
 class start_duration_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_back_process(Time, self.expand_duration) # （5月前三天） 8小时
-        self.add_back_process(Duration, self.reset_duration)  # （去年第一季度） 前三周
+        self.add_back_process(Time, self.expand_duration) # （5月前三天） 零8小时
 
     def expand_duration(self, args, this, other):
-        if not this.adjacent(other): return command_keep_2
-        if this.duration.has_unit(other.units): return command_keep_2
+        # merge duration
+        duration = duration_merger().do_back(args, this.duration, other)
+        if not isinstance(duration, Duration): return command_keep_2
+
         str, st, ed = self.concat_cell_info(this, other)
-        t = copy.deepcopy(this)
-        t.duration.merge(other)
-        t.pos_span = (st, ed)
-        return t
-
-    def reset_duration(self, args, this, other):
-        if not this.adjacent(other): return command_keep_2
-        if this.duration.has_unit(other.units): return command_keep_2
-        str, st, ed = self.concat_cell_info(this, other)
-        start = copy.deepcopy(this.start)
-        duration = copy.deepcopy(other)
-        return StartDuration(str, (st, ed), start, duration)
+        return StartDuration(str, (st, ed), start=copy.deepcopy(this.start), duration=duration)
 
 
 
 
+@singleton
 class merge_manager():
     def __init__(self):
         self._map = {

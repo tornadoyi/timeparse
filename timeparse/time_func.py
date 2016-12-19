@@ -17,6 +17,8 @@ def accuracy(v):
         if v[i] == None: continue
         st = i
         break
+    if st == None: return (None, None)
+
     for i in xrange(len(v)-1, st, -1):
         if v[i] == None: continue
         ed = i

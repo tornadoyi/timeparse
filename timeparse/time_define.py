@@ -14,9 +14,6 @@ class wordtype():
     calendar = 10
     lunar_month = 11
     lunar_day = 12
-    quarterly = 13
-
-
 
 
 # time unit description of yMdhms
@@ -27,8 +24,10 @@ class unit():
     hour = 3
     minute = 4
     second = 5
+    season = 0.5
     week = 1.5
     quarter = 3.5
+
 
 # relation
 class relation():
@@ -52,6 +51,7 @@ time_unit_range = {
     unit.hour: (0, 23),
     unit.minute: (0, 59),
     unit.second: (0, 59),
+    unit.season: (1, 4),
     unit.week: (1, 4),
     unit.quarter: (0, 3),
 }
@@ -64,6 +64,7 @@ time_unit_desc = {
     unit.hour: 'H',
     unit.minute: 'M',
     unit.second: 'S',
+    unit.season: 'se',
     unit.week: 'w',
     unit.quarter: 'q',
 }
@@ -76,9 +77,17 @@ time_unit_convert = {
     unit.hour: 60 * 60,
     unit.minute: 60,
     unit.second: 1,
+    unit.season: 3 * 30 * 24 * 60 * 60,
     unit.week: 7 * 24 * 60 * 60,
     unit.quarter: 15 * 60,
 }
+
+
+class relative():
+    none = None
+    now = 0
+    parent = -1
+
 
 
 
@@ -123,6 +132,7 @@ word_class_dict = {
         u"时": unit.hour, u"h": unit.hour, u"点": unit.hour, u"小时": unit.hour,
         u"分": unit.minute,
         u"秒": unit.second,
+        u"季": unit.season, u"季度": unit.season,
         u"周": unit.week, u"星期": unit.week, u"礼拜": unit.week,
         u"刻": unit.quarter,
     },
@@ -140,10 +150,6 @@ word_class_dict = {
         u"冬": (10, 12), u"冬天": (10, 12), u"冬季": (10, 12),
     },
 
-    wordtype.quarterly:{
-        u"季度": None,
-        u"季": None,
-    },
 
     wordtype.quantity:{
         u"个": 1,

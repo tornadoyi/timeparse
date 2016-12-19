@@ -16,7 +16,7 @@ from time_func import *
 import merge
 from collector import Collector
 import preference as prefer
-#from regularization import regularization as regular
+from regularization import regularization as regular
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -43,7 +43,7 @@ def parse(sentence, splits, pos, endpos, args):
 
 
     # regularization
-    #times = regular.regularize(times, args)
+    times = regular.regularize(times, args)
     #print_times(times, "regularization")
 
 

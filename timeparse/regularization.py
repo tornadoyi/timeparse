@@ -10,7 +10,6 @@ import time_define as td
 from time_struct import *
 import time_func as tf
 
-from ...entity import en_time as en
 
 
 class ChunkRegularization():
@@ -292,9 +291,9 @@ class SingleTimeRegularization(GroupRegularization):
     def regularize(self, t, args):
         v, duration = self.time.regularize(t, args)
         if duration == None:
-            return en.Time(t.sentence, t.pos_span, start=v, end=v)
+            return VectorTime(t.sentence, t.pos_span, start=v, end=v)
         else:
-            return en.Time(t.sentence, t.pos_span, start=v, duration=duration)
+            return VectorTime(t.sentence, t.pos_span, start=v, duration=duration)
 
 
 
@@ -305,7 +304,7 @@ class SingleDurationRegularization(GroupRegularization):
         start = args.timecore.vector(unit)
         start = tf.delta_time(start, unit, 1*t.directs[0].value)
         duration = self.duration.regularize(t, args)
-        return en.Time(t.sentence, t.pos_span, start=start, duration=duration)
+        return VectorTime(t.sentence, t.pos_span, start=start, duration=duration)
 
 
 class StartEndRegularization(GroupRegularization):
@@ -329,7 +328,7 @@ class StartEndRegularization(GroupRegularization):
             if duration: end = tf.shift_time(end, duration)
 
 
-        return en.Time(t.sentence, t.pos_span, start=start, end=end)
+        return VectorTime(t.sentence, t.pos_span, start=start, end=end)
 
 
 
@@ -338,7 +337,7 @@ class StartDurationRegularization(GroupRegularization):
     def regularize(self, t, args):
         start, duration = self.time.regularize(t.start, args)
         duration = self.duration.regularize(t.duration, args)
-        t =  en.Time(t.sentence, t.pos_span, start=start, duration=duration)
+        t =  VectorTime(t.sentence, t.pos_span, start=start, duration=duration)
         t = self.unit_align(t, args)
         return t
 
@@ -346,8 +345,8 @@ class StartDurationRegularization(GroupRegularization):
     def unit_align(self, t, args):
         # get accuracy
         start, duration = t.start, t.duration
-        acc_st = start.accuracy
-        acc_du = duration.accuracy
+        acc_st = tf.accuracy(start)
+        acc_du = tf.accuracy(duration)
         if acc_st[1] >= acc_du[0]: return t
 
         # padding
@@ -388,17 +387,17 @@ class RegularizationManager():
 
     def low_units_padding(self, t):
         def padding(v, use_max):
-            acc_v = v.accuracy
+            acc_v = tf.accuracy(v)
             # padding
             for i in xrange(acc_v[1] + 1, len(v), 1):
                 (min, max) = tf.unit_range_at_time(v, i)
                 v[i] = max if use_max == True else min
 
 
-        if t.end.accuracy != (None, None): padding(t.end, use_max=True)
+        if tf.accuracy(t.end) != (None, None): padding(t.end, use_max=True)
 
-        if t.start.accuracy != (None, None):
-            acc_du = t.duration.accuracy
+        if tf.accuracy(t.start) != (None, None):
+            acc_du = tf.accuracy(t.duration)
             if acc_du != (None, None) and t.duration[acc_du[0]] < 0:
                 padding(t.start, use_max=True)
             else:

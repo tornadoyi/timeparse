@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import sys
 import copy
-import time_define as td
-import numpy as np
 import math
+
+import numpy as np
+
+import time_define as td
+import time_func as tf
 
 
 class TimeCell():
@@ -113,13 +116,12 @@ class Holiday(TimeCell):
         self.duration = duration
         self.lunar = lunar
 
-    def to_start_duration(self):
-        day_direct = TimeDirect(-1, -1)  if self.day < 0 else None
-        start = Time(self.sentence, self.pos_span, [self.month, self.day], [td.unit.month, td.unit.day], [None, day_direct], self.lunar)
-        durtion = Duration(self.sentence, self.pos_span, [self.duration], [td.unit.day] )
-        return StartDuration(self.sentence, self.pos_span, start, durtion)
 
-    def upgrade(self): return self.to_start_duration()
+    def upgrade(self):
+        day_direct = TimeDirect(td.relative.parent, -1) if self.day < 0 else None
+        start = Time(self.sentence, self.pos_span, [td.unit.month, td.unit.day], [self.month, self.day], [None, day_direct], self.lunar)
+        duration = Duration(self.sentence, self.pos_span, [td.unit.day], [self.duration], [TimeDirect(td.relative.parent, 1)])
+        return StartDuration(self.sentence, self.pos_span, start, duration)
 
 
 
@@ -127,23 +129,35 @@ class Holiday(TimeCell):
 ## ==================================================== TimeChunk ==================================================== ##
 
 class TimeDirect():
-    def __init__(self, relative, value):
-        self.value = value
+    def __init__(self, relative = None, value = 0):
         self.relative = relative
+        self.value = value
 
-    def __str__(self): return u"{0}{1}".format(self.value, "p" if self.relative == -1 else "c")
+    @property
+    def none(self): return self.relative == td.relative.none
+
+    @property
+    def now(self): return self.relative == td.relative.now
+
+    @property
+    def parent(self): return self.relative == td.relative.parent
+
+
+    def __str__(self):
+        if self.relative == td.relative.none: return "none"
+        else: return u"{0}{1}".format(self.value, "p" if self.relative == td.relative.parent else "c" )
+
 
 
 class TimeChunk(TimeCell):
     time_level = 1
-    def __init__(self, sentence, pos_span, values, units, directs = None):
+    def __init__(self, sentence, pos_span, units, values, directs = None):
         TimeCell.__init__(self, sentence, pos_span)
-        self.values = []
         self.units = []
+        self.values = []
         self.directs = []
+        self.adds(units, values, directs or [TimeDirect()] * len(units))
 
-        directs = directs or [None] * len(units)
-        for i in xrange(len(values)): self.add(values[i], units[i], directs[i])
 
     def __str__(self):
         v = u""
@@ -156,10 +170,17 @@ class TimeChunk(TimeCell):
 
         return TimeCell.__str__(self) + "   " + "t:({0})  d:({1})".format(v, d)
 
-    def add(self, value, unit, direct = None):
-        for i in xrange(len(self.units)):
+
+    def adds(self, units, values, directs = None):
+        if directs == None: directs = [TimeDirect()] * len(units)
+        for i in xrange(len(units)): self.add(units[i], values[i], directs[i])
+
+
+    def add(self, unit, value,  direct = None):
+
+        for i in xrange(len(self.units)-1, -1, -1):
             u = self.units[i]
-            assert unit != u
+            if unit <= u: break
             if unit > u: continue
             self.units.insert(i, unit)
             self.values.insert(i, value)
@@ -170,6 +191,7 @@ class TimeChunk(TimeCell):
         self.units.append(unit)
         self.directs.append(direct)
 
+
     def has_unit(self, unit):
         if type(unit) != list: return unit in self.units
         for u in unit:
@@ -179,19 +201,12 @@ class TimeChunk(TimeCell):
 
     def unit_index(self, unit): return self.units.index(unit) if self.has_unit(unit) else None
 
-
-
-    def merge(self, other):
-        TimeCell.merge(self, other)
-        for i in xrange(len(other.units)):
-            self.add(other.values[i], other.units[i], other.directs[i])
-
     def upgrade(self): self._level += 1
 
 
 class Time(TimeChunk):
-    def __init__(self, sentence, pos_span, values, units, directs = None, lunar = False):
-        TimeChunk.__init__(self, sentence, pos_span, values, units, directs)
+    def __init__(self, sentence, pos_span, units, values, directs = None, lunar = False):
+        TimeChunk.__init__(self, sentence, pos_span, units, values, directs)
         self.lunar = lunar
 
     def __str__(self):
@@ -201,16 +216,9 @@ class Time(TimeChunk):
 
 
 
-    def merge(self, other):
-        TimeChunk.merge(self, other)
-        if other.lunar: self.lunar = True
-
-
-
-
 class Duration(TimeChunk):
-    def __init__(self, sentence, pos_span, values, units, directs = None):
-        TimeChunk.__init__(self, sentence, pos_span, values, units, directs)
+    def __init__(self, sentence, pos_span, units, values, directs = None):
+        TimeChunk.__init__(self, sentence, pos_span, units, values, directs)
 
 
 
@@ -285,3 +293,31 @@ class Relation_Start(Relation):
         Relation.__init__(self, sentence, pos_span, td.relation.start)
 
 
+
+
+
+## ====================================================== VectorTime ====================================================== ##
+
+class VectorTime(TimeCell):
+    def __init__(self, sentence, pos_span, start, end = None, duration = None):
+        TimeCell.__init__(self, sentence, pos_span)
+        self.start = start
+        self.end = end or tf.time_vector()
+        self.duration = duration or tf.time_vector()
+
+
+    def __str__(self):
+        s = u"("
+        if tf.accuracy(self.start) != (None, None):
+            s += tf.timevec_format(self.start)
+
+        if tf.accuracy(self.end) != (None, None):
+            s += ", "
+            s += tf.timevec_format(self.end)
+
+        if tf.accuracy(self.duration) != (None, None):
+            s += ", "
+            s += tf.timevec_format(self.duration, with_unit=True)
+
+        s += u")"
+        return s
