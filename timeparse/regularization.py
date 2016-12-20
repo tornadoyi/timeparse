@@ -8,7 +8,7 @@ import numpy as np
 
 import time_define as td
 from time_struct import *
-import time_func as tf
+import time_func_ext as tf
 
 
 
@@ -122,7 +122,7 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_preference(t):
             # direct that relative to now is needn't padding
             # convert week
-            if t.directs[0].now: return t
+            if t[0].relative == td.relative.now: return t
             values = args.padding(t[0].unit, t[0].value, t.pos_span, args)
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
@@ -143,19 +143,27 @@ class TimeRegularization(ChunkRegularization):
 
     def dropout_directs(self, time, args):
 
-        def fill_vector(src, dst, start=None, end=None, overlap=False):
-            if src == None or dst == None: return
-            start = start or 0
-            end = end or len(src)
-            for i in xrange(int(start), len(src), 1):
-                if i >= end: break
-                if src[i] == None: break
-                if not overlap and dst[i] != None: continue
-                dst[i] = src[i]
-
         curvector = args.timecore.vector
         vector = tf.time_vector()
         duration = tf.time_vector()
+
+        def update_vectors(vec, dur, unit, overlap = False):
+
+            def fill_vector(src, dst, start=None, end=None, overlap=False):
+                if src == None or dst == None: return
+                start = start or 0
+                end = end or len(src)
+                for i in xrange(int(start), len(src), 1):
+                    if i >= end: break
+                    if not overlap and dst[i] != None: continue
+                    dst[i] = src[i]
+
+            # update vector
+            fill_vector(vec, vector, end=unit+1, overlap=overlap)
+
+            # update duration
+            if dur != None: fill_vector(dur, duration, unit+1)
+            else: duration[0:int(math.ceil(unit))] = [None] * int(math.ceil(unit))
 
 
         for i in xrange(len(time.units)):
@@ -175,42 +183,27 @@ class TimeRegularization(ChunkRegularization):
                 continue
             '''
 
+            # absolute unit
+            if relative == td.relative.none:
+                if unit - int(unit) == 0:
+                    vector[unit] = value
+                else:
+                    vec, dur = tf.transform_time_by_modify_unit(vector, unit, value)
+                    update_vectors(vec, dur, unit)
 
-            # dropout directs
+
             # relative to now
-            if relative == td.relative.now:
-                vec, dur = alg.shift_vector(curvector, unit, direct)
-                fill_vector(vec, vector, end=unit + 1)
-                fill_vector(dur, duration, end=unit + 1)
+            elif relative == td.relative.now:
+                vec, dur = tf.shift_time(curvector, unit, value*direct)
+                update_vectors(vec, dur, unit)
 
 
             # relative to parent
             elif relative == td.relative.parent:
+                vec, dur = tf.transform_time_at_the_number_of_unit(vector, duration, unit, value*direct)
+                update_vectors(vec, dur, unit, overlap=True)
 
-
-            # week then create duration
-            if u == td.unit.week:
-                vec = tf.start_time_at_week(vector[0], vector[1], d.value * v)
-                fill_vector(vec, vector, end=u + 1, overlap=True)
-                duration[td.unit.day] = tf.unit2unit(1, td.unit.week, td.unit.day)
-
-
-            # quarter then create duration
-            elif u == td.unit.quarter:
-                value = d.value * v * tf.unit2unit(1, td.unit.quarter, td.unit.quarter)
-                vector[td.unit.second] = value
-                duration[td.unit.second] = tf.unit2unit(1, td.unit.quarter, td.unit.quarter)
-
-
-            # other units
-            else:
-                assert u != td.unit.year
-                (min, max) = tf.unit_range_at_time(vector, u)
-                if duration[u] != None: min, max = vector[u], vector[u]+duration[u]-1
-
-                vector[u] = max + d.value * v + 1 if d.value < 0 else min + d.value * v - 1
-                duration[u] = None
-
+            else: assert False
 
         if duration == tf.time_vector(): duration = None
         return vector, duration

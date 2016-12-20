@@ -43,10 +43,10 @@ def demo(args):
     ]
 
     special_case = [
-        u"国庆节后三天的数据",
+        u"4季度倒数第三天",
     ]
 
-    for case in cases:
+    for case in special_case:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)

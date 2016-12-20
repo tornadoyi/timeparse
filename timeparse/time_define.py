@@ -99,7 +99,7 @@ def time_tuple(y = None, M = None, d = None, h = None , m = None, s = None, fill
     i = st
     while i >= 0 and i < len(v):
         if v[i] != None: break
-        v[i] = fill[1] > 0 and time_unit_range[i][1] or     time_unit_range[i][0]
+        v[i] = fill[1] > 0 and time_unit_range[i][1] or time_unit_range[i][0]
         i += delta
     return tuple(v)
 

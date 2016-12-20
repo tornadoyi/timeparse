@@ -5,8 +5,7 @@ import copy
 import numpy as np
 
 import time_define as td
-import time_func as tf
-import time_algorithm as alg
+import time_func_ext as tf
 
 class Prefer(object):
     def __init__(self):
@@ -33,7 +32,7 @@ class UnitPadding(Prefer):
             return (t, t, t)
 
         # target time
-        target = alg.modify_vector(cur, unit, value)
+        target = tf.modify_time(cur, unit, value)
 
 
         # last and next time

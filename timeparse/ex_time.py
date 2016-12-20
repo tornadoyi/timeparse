@@ -43,7 +43,7 @@ def parse(sentence, splits, pos, endpos, args):
 
 
     # regularization
-    #times = regular.regularize(times, args)
+    times = regular.regularize(times, args)
     #print_times(times, "regularization")
 
 

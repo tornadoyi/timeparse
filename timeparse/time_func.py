@@ -16,7 +16,7 @@ def keep_vector(v, unit, mode = "clear"):
     if mode == "clear":
         st = int(unit + 1)
         ed = len(v)
-        v[st:ed] = [None] * (ed - st + 1)
+        v[st:ed] = [None] * (ed - st)
         return v
     else:
         return v[0:int(unit+1)]
@@ -95,7 +95,7 @@ def solar2lunar(year, month, day): return converter.SolarToLunar(year, month, da
 
 
 def days_of_month(year, month):
-    range = monthrange(year, month)
+    range = monthrange(int(year), int(month))
     return range[1]
 
 
@@ -126,6 +126,7 @@ def delta_time(v, unit = None, delta = None):
         res = v
         if unit == td.unit.year:
             res[unit] += d
+
         elif unit == td.unit.month:
             sum = res[td.unit.month] + d
             m = sum % 12
@@ -133,6 +134,11 @@ def delta_time(v, unit = None, delta = None):
             dy = int(sum / 13.0)
             dy = sum <= 0 and dy - 1 or dy
             res[td.unit.year] += dy
+
+        elif unit == td.unit.season:
+            num_month = unit2unit(td.unit.season, td.unit.month)
+            res = delta_unit(res, td.unit.month, num_month * d)
+
         else:
             tm = vec2datetime(v)
             delta = None
@@ -140,7 +146,6 @@ def delta_time(v, unit = None, delta = None):
             elif unit == td.unit.hour: delta = datetime.timedelta(hours=d)
             elif unit == td.unit.minute: delta = datetime.timedelta(minutes=d)
             elif unit == td.unit.second: delta = datetime.timedelta(seconds=d)
-            elif unit == td.unit.season: delta = datetime.timedelta(seconds=d*unit2unit(unit, td.unit.second))
             elif unit == td.unit.week: delta = datetime.timedelta(weeks=d)
             elif unit == td.unit.quarter: delta = datetime.timedelta(minutes=d*unit2unit(unit, td.unit.minute))
             else: assert False
@@ -184,7 +189,7 @@ def weekday_vector(someday, day):
     dt = vec2datetime(someday)
     delta = datetime.timedelta(days=day - dt.weekday())
     res = dt + delta
-    return datetime2vec(res, td.unit.week)
+    return datetime2vec(res)
 
 
 def start_time_at_week(year, month, delta_week):
@@ -207,7 +212,19 @@ def unit_range_at_time(v, unit):
 
 
 
+# ============================================= padding ============================================= #
 
+def padding(v, unit, max_unit):
+    v = copy.deepcopy(v)
+    for i in xrange(len(v)):
+        if v[i] != None: continue
+        (min, max) = unit_range_at_time(v, i)
+        v[i] = max if max_unit else min
+    return v
+
+def padding_max(v, unit = td.unit.second): return padding(v, unit, True)
+
+def padding_min(v, unit = td.unit.second): return padding(v, unit, False)
 
 
 class TimeCore(object):
