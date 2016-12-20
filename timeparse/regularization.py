@@ -82,14 +82,14 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_collector(t):
             # direct that relative to now is needn't padding
             # weekday without direct is needn't padding
-            if t.directs[0].now or time.units[0] == td.unit.week: return t
+            if t[0].relative == td.relative.now or t[0].weekday == True: return t
 
-            end_unit = int(math.ceil(time.units[0])) - 1
+            end_unit = int(math.ceil(time[0].unit)) - 1
             for i in xrange(end_unit, -1, -1):
                 v = args.collector.find_nearest_unit(time.pos_span, i)
                 if v == None: break
                 u_idx = v.unit_index(i)
-                t.add(i, v.values[u_idx], v.directs[u_idx])
+                t.add(v.data[u_idx])
 
             return t
 
@@ -104,18 +104,18 @@ class TimeRegularization(ChunkRegularization):
             if hour_idx == None: return t
 
             # convert
-            (v_hour, next_day) = sp_hour.convert(t.values[hour_idx])
+            (v_hour, next_day) = sp_hour.convert(t[hour_idx].value)
             t.values[hour_idx] = v_hour
             day_idx = t.unit_index(td.unit.day)
             if next_day and day_idx != None:
-                d = t.directs[day_idx]
-                if d == None or d.value > 0:
-                    t.values[day_idx] += 1
-                elif d.value == 0:
-                    t.values[day_idx] += 1
-                    d.value = 1
+                relative, direct = t[day_idx].relative, t[day_idx].direct
+                if relative == td.relative.none or direct > 0:
+                    t[day_idx].value += 1
+                elif direct == 0:
+                    t[day_idx].value += 1
+                    t[day_idx].direct = 1
                 else:
-                    t.values[day_idx] -= 1
+                    t[day_idx].value -= 1
             return t
 
 
@@ -123,15 +123,12 @@ class TimeRegularization(ChunkRegularization):
             # direct that relative to now is needn't padding
             # convert week
             if t.directs[0].now: return t
-            values = args.padding(t.values[0], t.units[0], t.pos_span, args)
+            values = args.padding(t[0].unit, t[0].value, t.pos_span, args)
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
-            directs = [None] * len(values)
 
-            for i in xrange(len(t.units)):
-                unit = t.units[i]
-                if unit <= len(values) - 1: continue
-                t.add(t.units[i], t.values[i], t.directs[i])
+            for i in xrange(int(math.ceil(t[0].unit))):
+                t.add(UD(units[i], values[i]))
 
             return t
 
@@ -147,6 +144,7 @@ class TimeRegularization(ChunkRegularization):
     def dropout_directs(self, time, args):
 
         def fill_vector(src, dst, start=None, end=None, overlap=False):
+            if src == None or dst == None: return
             start = start or 0
             end = end or len(src)
             for i in xrange(int(start), len(src), 1):
@@ -155,13 +153,13 @@ class TimeRegularization(ChunkRegularization):
                 if not overlap and dst[i] != None: continue
                 dst[i] = src[i]
 
-        curvector = args.timecore.vector(int(math.ceil(time.units[-1])))
+        curvector = args.timecore.vector
         vector = tf.time_vector()
         duration = tf.time_vector()
 
 
         for i in xrange(len(time.units)):
-            u, v, d = time.units[i], time.values[i], time.directs[i]
+            unit, value, direct, relative = time[i].unit, time[i].value, time[i].direct, time[i].relative
 
             # padding with preference
             '''
@@ -180,19 +178,16 @@ class TimeRegularization(ChunkRegularization):
 
             # dropout directs
             # relative to now
-            if d.now:
-                if u == td.unit.week:
-                    start = args.timecore.weekday(v)
-                    end = tf.delta_time(start, td.unit.day, 7 * d.value)
-                    fill_vector(end, vector, end=u + 1)
-
-                else:
-                    vec = tf.delta_time(curvector, u, v * d.value)
-                    fill_vector(vec, vector, end=u + 1)
-                continue
+            if relative == td.relative.now:
+                vec, dur = alg.shift_vector(curvector, unit, direct)
+                fill_vector(vec, vector, end=unit + 1)
+                fill_vector(dur, duration, end=unit + 1)
 
 
             # relative to parent
+            elif relative == td.relative.parent:
+
+
             # week then create duration
             if u == td.unit.week:
                 vec = tf.start_time_at_week(vector[0], vector[1], d.value * v)
@@ -289,7 +284,7 @@ class SingleDurationRegularization(GroupRegularization):
 
     def regularize(self, t, args):
         unit = t.units[-1]
-        start = args.timecore.vector(unit)
+        start = args.timecore.vector
         start = tf.delta_time(start, unit, 1*t.directs[0].value)
         duration = self.duration.regularize(t, args)
         return VectorTime(t.sentence, t.pos_span, start=start, duration=duration)

@@ -6,6 +6,7 @@ import numpy as np
 
 import time_define as td
 import time_func as tf
+import time_algorithm as alg
 
 class Prefer(object):
     def __init__(self):
@@ -23,24 +24,17 @@ class UnitPadding(Prefer):
     def __init__(self):
         Prefer.__init__(self)
 
-    def get_choices(self, value, unit, pos_span, args):
+    def get_choices(self, unit, value, pos_span, args):
 
         # current time
-        cur = args.timecore.vector(int(math.ceil(unit)))
+        cur = args.timecore.vector
         if unit == td.unit.year:
             t = tf.time_vector(year=value)
             return (t, t, t)
 
         # target time
-        target = None
-        if unit == td.unit.week:
-            target = args.timecore.weekday(value)
-        else:
-            target = copy.deepcopy(cur)
-            if unit == td.unit.quarter:
-                target[td.unit.minute] = tf.unit2unit(value, td.unit.quarter, td.unit.minute)
-            else:
-                target[unit] = value
+        target = alg.modify_vector(cur, unit, value)
+
 
         # last and next time
         sp_hour = args.collector.find_nearest_special_hour(pos_span)
@@ -60,6 +54,7 @@ class UnitPadding(Prefer):
             next = tf.delta_time(target, h_unit, 1)
 
         return (target, last, next)
+
 
 
 class RecentPadding(UnitPadding):
@@ -83,8 +78,8 @@ class RecentPadding(UnitPadding):
 
 
 class HistoryPadding(UnitPadding):
-    def do(self, value, unit, pos_span, args):
-        choices = self.get_choices(value, unit, pos_span, args)
+    def do(self, unit, value, pos_span, args):
+        choices = self.get_choices( unit, value, pos_span, args)
 
         # current time
         cur = args.timecore.timestamp
@@ -104,8 +99,8 @@ class HistoryPadding(UnitPadding):
 
 
 class FuturePadding(UnitPadding):
-    def do(self, value, unit, pos_span, args):
-        choices = self.get_choices(value, unit, pos_span, args)
+    def do(self, unit, value, pos_span, args):
+        choices = self.get_choices(unit, value, pos_span, args)
 
         # current time
         cur = args.timecore.timestamp
