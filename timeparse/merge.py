@@ -93,10 +93,10 @@ class digit_merger(merger):
         if not this.adjacent(other): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         if this.quantity or other.value == td.unit.week:
-           return  Duration(str, (st, ed), [other.value], [this.value])
+           return  Duration(str, (st, ed), UD(other.value, this.value))
 
         else:
-            return Time(str, (st, ed), [other.value], [this.value])
+            return Time(str, (st, ed), UD(other.value, this.value))
 
 
 
@@ -122,8 +122,9 @@ class direct_merger(merger):
         v = this.info_with_unit
         str, st, ed = self.concat_cell_info(this, other)
         value = np.abs(v)
-        direct = TimeDirect(this.relative, v / value if v != 0 else 0)
-        return Time(str, (st, ed), [other.value], [value], [direct])
+        return Time(str, (st, ed), UD(other.value, value, relative=this.relative, direct=v / value if v != 0 else 0))
+
+
 
     def time_back_process(self, args, this, other): return self._convert(args, this, other, True)
 
@@ -137,20 +138,19 @@ class direct_merger(merger):
     def _convert(self, args, this, other, this_first):
         # check
         if not this.adjacent(other): return command_keep_2
-        if not other.directs[0].none: return command_keep_2
+        if other[0].relative != td.relative.none: return command_keep_2
         info = this.info_with_front if this_first else this.info_with_back
         if info == None: return command_keep_2
 
         # prepare
         str, st, ed = self.concat_cell_info(this, other)
-
+        other = copy.deepcopy(other)
 
         # 上周三
-        if (other.__class__, other.units[0], other.directs[0]) == (Time, td.unit.week, None):
-            directs = copy.deepcopy(other.directs)
-            d = this.info_with_unit
-            directs[0] = TimeDirect(this.relative, d)
-            return Time(str, (st, ed), other.units,  other.values, directs)
+        if (other.__class__, other[0].unit, other[0].weekday) == (Time, td.unit.week, True):
+            other[0].relative = this.relative
+            other[0].direct = this.info_with_unit
+            return Time(str, (st, ed), other.datas)
 
         # span
         elif type(info) == tuple:
@@ -158,40 +158,36 @@ class direct_merger(merger):
 
             # all number then create time
             if float('-inf') < d_st and d_ed < float('inf'):
-                directs = copy.deepcopy(other.directs)
-                if d_st == 0: directs[0] = TimeDirect(this.relative, d_ed)
-                elif d_ed == 0: directs[0] = TimeDirect(this.relative, d_st)
+                if d_st == 0: other[0].relative = this.relative; other[0].direct = d_ed;
+                elif d_ed == 0: other[0].relative = this.relative; other[0].direct = d_st;
                 else: assert False # todo
 
                 # week check
-                if this_first and other.__class__ == Time and td.unit.week in other.units:
-                    return Time(str, (st, ed), other.units, other.values, directs)
-                else:
-                    return Duration(str, (st, ed), other.units, other.values, directs)
+                return Duration(str, (st, ed), other.datas)
 
 
             # -inf ~ x
             elif d_st == float('-inf') and d_ed < float('inf'):
-                start = d_st#Time("", (0, 0), [], [])
-                end = copy.deepcopy(other)
-                end.directs[0] = TimeDirect(this.relative, d_ed)
-                return StartEnd(str, (st, ed), start, end)
+                start = d_st
+                other[0].relative = this.relative
+                other[0].direct = d_ed
+                return StartEnd(str, (st, ed), start, other)
 
             # x ~ inf
             elif d_st > float('-inf') and d_ed == float('inf'):
-                end = d_ed#Time("", (0, 0), [], [])
-                start = copy.deepcopy(other)
-                start.directs[0] = TimeDirect(this.relative, d_st)
-                return StartEnd(str, (st, ed), start, end)
+                end = d_ed
+                other[0].relative = this.relative
+                other[0].direct = d_st
+                return StartEnd(str, (st, ed), other, end)
 
             else: assert False
 
         # time
         else:
-            directs = copy.deepcopy(other.directs)
             d = info
-            directs[0] = TimeDirect(this.relative, d)
-            return Time(str, (st, ed), other.units, other.values,  directs)
+            other[0].relative = this.relative
+            other[0].direct = d
+            return Time(str, (st, ed), other.datas)
 
 
 
@@ -220,29 +216,28 @@ class holiday_merger(merger):
 
 
     def duration_process(self, args, this, other):
-        if other.units[0] < td.unit.day: return command_keep_2
+        if other[0].unit < td.unit.day: return command_keep_2
 
         str, st, ed = self.concat_cell_info(this, other)
         duration = copy.deepcopy(other)
-        direct = duration.directs[0]
 
         # gen duration
-        if not direct.none:
-            direct.value *= -1
-            direct.relative = td.relative.parent
+        if duration[0].relative != td.relative.none:
+            duration[0].direct *= -1
+            duration[0].relative = td.relative.parent
 
         # gen start
-        day_direct = TimeDirect(td.relative.parent, -1) if this.day < 0 else TimeDirect()
-        if direct.value >= 0:
-            start = Time(this.sentence, this.pos_span, [td.unit.month, td.unit.day], [this.month, this.day], [TimeDirect(), day_direct], this.lunar)
+        rel_dir = qdict(direct=-1, relative=td.relative.parent) if this.day < 0 else {}
+        if duration[0].direct >= 0:
+            start = Time(this.sentence, this.pos_span, [UD(td.unit.month, this.month), UD(td.unit.day, this.day, **rel_dir)], this.lunar)
         else:
-            start = Time(this.sentence, this.pos_span, [td.unit.month, td.unit.day], [this.month, this.day+this.duration-1], [TimeDirect(), day_direct], this.lunar)
+            start = Time(this.sentence, this.pos_span, [UD(td.unit.month, this.month), UD(td.unit.day, this.day+this.duration-1, **rel_dir)], this.lunar)
 
         return StartDuration(str, (st, ed), start, duration)
 
 
     def time_process(self, args, this, other):
-        if other.units[0] < td.unit.day : return command_keep_2
+        if other[0].unit < td.unit.day : return command_keep_2
 
         str, st, ed = self.concat_cell_info(this, other)
         other = copy.deepcopy(other)
@@ -251,14 +246,13 @@ class holiday_merger(merger):
         if day_idx != None and other.directs[day_idx].value < 0:
             assert this.day > 0
             end_day = this.day + this.duration - 1
-            delta = other.directs[day_idx].value * other.values[day_idx]
-            other.values[day_idx] = end_day + delta
-            other.directs[day_idx] = td.relative.none
+            delta = other[day_idx].direct * other[day_idx].value
+            other[day_idx].value = end_day + delta
+            other[day_idx].direct = td.relative.none
 
-
-        day_direct = TimeDirect(td.relative.parent, -1) if this.day < 0 else TimeDirect()
-        start = Time(this.sentence, this.pos_span, [td.unit.month], [this.month], [TimeDirect()], this.lunar)
-        start.add(other.units, other.values, other.directs)
+        rel_dir = qdict(direct=-1, relative=td.relative.parent) if this.day < 0 else {}
+        start = Time(this.sentence, this.pos_span, UD(td.unit.month, this.month, **rel_dir), this.lunar)
+        start.add(other.datas)
 
         return start
 
@@ -295,7 +289,7 @@ class time_merger(merger):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.add(other.units, other.values, other.directs)
+        t.add(other.datas)
         if other.lunar: t.lunar = other.lunar
         t.pos_span = (st, ed)
         return t
@@ -306,9 +300,8 @@ class time_merger(merger):
         str, st, ed = self.concat_cell_info(this, other)
         start = copy.deepcopy(this)
         duration = copy.deepcopy(other)
-        direct = duration.directs[0]
-        direct.value *= -1
-        direct.relative = td.relative.parent
+        duration[0].direct *= -1
+        duration[0].relative = td.relative.parent
 
         return StartDuration(str, (st, ed), start=start, duration=duration)
 
@@ -317,9 +310,9 @@ class time_merger(merger):
         if not this.adjacent(other): return command_keep_2
         t = copy.deepcopy(this)
         if other.value == 0.5:
-            t.values[-1] += other.value
-        elif t.units[-1] < td.unit.second:
-            t.add(other.value, t.units[-1]-1)
+            t[-1].value += other.value
+        elif t[-1].unit < td.unit.second:
+            t.add(other.value, t[-1].unit-1)
         else:
             return None
 
@@ -340,10 +333,10 @@ class duration_merger(merger):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
-        t.add(other.units, other.values, other.directs)
-        if not other.directs[0].none:
-            other.directs[0].value *= -1
-            other.directs[0].relative = td.relative.parent
+        t.add(other.datas)
+        if other[0].direct != td.relative.none:
+            other[0].direct *= -1
+            other[0].relative = td.relative.parent
 
         t.pos_span = (st, ed)
         return t
@@ -377,7 +370,8 @@ class relation_start_merger(merger):
 
     def to_start_duration(self, args, this, front, back):
         str, st, ed = self.concat_cell_info(this, front, back)
-        return StartDuration(str, (st, ed), start=front, duration = back)
+        duration = back if type(back) == Duration else Duration(back.sentence, back.pos_span, back.datas)
+        return StartDuration(str, (st, ed), start=front, duration = duration)
 
 
 

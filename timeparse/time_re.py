@@ -177,13 +177,13 @@ class week_re(time_re):
         unit = self.parse_unit(m.group(1))
         digit = self.parse_digits(m.group(2))
 
-        return Time(str, (st, ed), [unit], [digit])
+        return Time(str, (st, ed), UD(unit, digit, weekday=True))
 
 
     def sunday(self, m, args):
         # check
         str, st, ed = self.parse_match(m)
-        return Time(str, (st, ed), [td.unit.week], [7])
+        return Time(str, (st, ed), UD(td.unit.week, 7, weekday=True))
 
 
 # relation
@@ -288,9 +288,6 @@ class holiday_re(time_re):
         # parse
         (type, month, day, duration_day ) = self.parse_holiday(m.group(1))
         time = Holiday(str, (st, ed), month, day, duration_day, lunar=(type == td.calendar.lunar))
-        #start = Time(str, (st, ed), [td.unit.month, td.unit.day], [month, day])
-        #duration = Duration(str, (st, ed), [td.unit.day], [duration_day], [TimeDirect(td.relative.parent, 1)])
-        #time = StartDuration(str, (st, ed), start=start, duration=duration)
         return time
 
 
@@ -307,12 +304,7 @@ class seasons_re(time_re):
 
         # parse
         (start_month, end_month ) = self.parse_season(m.group(1))
-        start = Time(str, (st, ed), [td.unit.month], [start_month])
-        duration = Duration(str, (st, ed), [end_month - start_month + 1], [td.unit.month])
-        return StartDuration(str, (st, ed), start, duration)
-
-
-
+        return Season(str, (st, ed), start_month, end_month)
 
 
 
@@ -336,7 +328,7 @@ class lunar_re(time_re):
         # parse
         month = self.parse_lunar_month(m.group(1))
 
-        return Time(str, (st, ed), [td.unit.month], [month], lunar=True)
+        return Time(str, (st, ed), UD(td.unit.month, month), lunar=True)
 
     def process_lunar_day(self, m, args):
         # check
@@ -346,7 +338,9 @@ class lunar_re(time_re):
         day = self.parse_lunar_month(m.group(1))
         digit = self.parse_digits(m.group(2))
 
-        return Time(str, (st, ed),  [td.unit.day], [digit], lunar=True)
+        return Time(str, (st, ed),  UD(td.unit.day, digit), lunar=True)
+
+
 
 class format_re(time_re):
     colon = [u':', u'：']
@@ -432,7 +426,7 @@ class format_re(time_re):
 
         if tv == None: return None
 
-        partime = Time(str, (st, ed), *tv)
+        partime = Time(str, (st, ed), tv)
         return partime
 
 
@@ -444,11 +438,10 @@ class format_re(time_re):
         else: return [td.unit.year, td.unit.month, td.unit.day, td.unit.hour, td.unit.minute, td.unit.second]
 
     def gen_time_vec(self, v, unit_start):
-        values = []; units = []
+        datas = []
         for i in xrange(len(v)):
-            values.append(v[i])
-            units.append(unit_start + i)
-        return (units, values)
+            datas.append(UD(unit_start + i, v[i]))
+        return datas
 
 
 

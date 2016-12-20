@@ -32,6 +32,9 @@ def demo(args):
         u"国庆节后三天的数据",
         u"正月的数据额",
         u"明天开始我要请三天假",
+        u"上上周",
+        u"上周2",
+        u"上上周2",
 
         u"阴历2016年1月1日上午8点0分0秒",
         u"阴历2016年1月1日上午8点3刻",
@@ -40,12 +43,10 @@ def demo(args):
     ]
 
     special_case = [
-        u"上上周",
-        u"上周2",
-        u"上上周2",
+        u"国庆节后三天的数据",
     ]
 
-    for case in special_case:
+    for case in cases:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)
