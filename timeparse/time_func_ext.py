@@ -114,7 +114,8 @@ def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
 
     else:
         high_unit, reg_unit = int(unit-1), int(math.ceil(unit))
-        vector, duration = transform_time_by_modify_unit(v_seed, high_unit, v_seed[high_unit])
+        vector, duration = transform_time_by_modify_unit(v_seed, unit, unit_min(unit))
+        vector[reg_unit] = None
 
         if number < 0:
             for i in xrange(reg_unit+1):

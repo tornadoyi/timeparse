@@ -136,7 +136,7 @@ def delta_time(v, unit = None, delta = None):
             res[td.unit.year] += dy
 
         elif unit == td.unit.season:
-            num_month = unit2unit(td.unit.season, td.unit.month)
+            num_month = unit2unit(1, td.unit.season, td.unit.month)
             res = delta_unit(res, td.unit.month, num_month * d)
 
         else:

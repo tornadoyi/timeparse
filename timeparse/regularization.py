@@ -169,20 +169,6 @@ class TimeRegularization(ChunkRegularization):
         for i in xrange(len(time.units)):
             unit, value, direct, relative = time[i].unit, time[i].value, time[i].direct, time[i].relative
 
-            # padding with preference
-            '''
-            if d == None:
-                if u == td.unit.week:
-                    assert False
-                elif u == td.unit.quarter:
-                    u = td.unit.minute
-                    v = tf.unit2unit(v, td.unit.quarter, td.unit.minute)
-
-                vec = args.padding(v, u, time.pos_span, args)
-                fill_vector(vec, vector, end=u + 1)
-                continue
-            '''
-
             # absolute unit
             if relative == td.relative.none:
                 if unit - int(unit) == 0:

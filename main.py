@@ -43,7 +43,9 @@ def demo(args):
     ]
 
     special_case = [
-        u"4季度倒数第三天",
+        #u"4季度倒数第三天",
+        #u"第4季度倒数第三天",
+        u"去年的今天"
     ]
 
     for case in special_case:
