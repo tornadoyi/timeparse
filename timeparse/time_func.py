@@ -30,7 +30,7 @@ def accuracy(v):
         break
     if st == None: return (None, None)
 
-    for i in xrange(len(v)-1, st, -1):
+    for i in xrange(len(v)-1, st-1, -1):
         if v[i] == None: continue
         ed = i
         break
@@ -154,12 +154,15 @@ def delta_time(v, unit = None, delta = None):
         return res
 
     v = copy.deepcopy(v)
+    acc = accuracy(v)
     if type(delta) == list:
         for i in xrange(delta):
             if delta[i] == None: continue
             v = delta_unit(v, i, delta[i])
     else:
         v = delta_unit(v, unit, delta)
+
+    v = keep_vector(v, acc[-1])
 
     return v
 

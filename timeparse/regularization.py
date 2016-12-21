@@ -89,7 +89,7 @@ class TimeRegularization(ChunkRegularization):
                 v = args.collector.find_nearest_unit(time.pos_span, i)
                 if v == None: break
                 u_idx = v.unit_index(i)
-                t.add(v.data[u_idx])
+                t.add(v.datas[u_idx])
 
             return t
 
@@ -105,7 +105,7 @@ class TimeRegularization(ChunkRegularization):
 
             # convert
             (v_hour, next_day) = sp_hour.convert(t[hour_idx].value)
-            t.values[hour_idx] = v_hour
+            t[hour_idx].value = v_hour
             day_idx = t.unit_index(td.unit.day)
             if next_day and day_idx != None:
                 relative, direct = t[day_idx].relative, t[day_idx].direct
@@ -180,7 +180,10 @@ class TimeRegularization(ChunkRegularization):
 
             # relative to now
             elif relative == td.relative.now:
-                vec, dur = tf.shift_time(curvector, unit, value*direct)
+                if time[i].weekday == True:
+                    vec, dur = tf.shift_time(curvector, unit, shift=direct, weekday=value)
+                else:
+                    vec, dur = tf.shift_time(curvector, unit, shift=value*direct)
                 update_vectors(vec, dur, unit)
 
 
@@ -217,7 +220,7 @@ class DurationRegularization(ChunkRegularization):
                 u = int(u+1)
 
             vector[u] = v if vector[u] == None else vector[u] + v
-            if d and d.value < 0: negtive = True
+            if d != None and  d < 0: negtive = True
 
         if negtive:
             for i in xrange(len(vector)):
@@ -258,8 +261,8 @@ class SingleDurationRegularization(GroupRegularization):
 
     def regularize(self, t, args):
         unit = t[-1].unit
-        start = args.timecore.vector
-        start = tf.delta_time(start, unit, 1*t[0].direct)
+        start = tf.keep_vector(args.timecore.vector, unit)
+        start = tf.delta_time(start, unit, t[0].direct)
         duration = self.duration.regularize(t, args)
         return VectorTime(t.sentence, t.pos_span, start=start, duration=duration)
 

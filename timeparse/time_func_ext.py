@@ -7,57 +7,6 @@ import time_define as td
 from time_func import *
 from time_struct import *
 
-'''
-def create_time_by_seed(v_seed, unit, value):
-    units = values = None
-    if unit == td.unit.week:
-        values = weekday_vector(v_seed, value)
-        values = keep_vector(values, unit, "cut")
-        units = [i for i in xrange(td.unit.day+1)]
-
-
-    else:
-        units = []
-        values = []
-        for i in xrange(int(unit)):
-            units.append(i)
-            values.append(v_seed[i])
-
-        units.append(unit)
-        values.append(value)
-
-    return (units, values)
-
-
-def shift_time(v_seed, unit, shift):
-    dt = vec2datetime(v_seed)
-    value = get_datetime_unit(dt, unit)
-    (units, values) = create_time_by_seed(v_seed, unit, value)
-
-    # delta time
-    vector = delta_time(v_seed, unit, shift)
-
-
-
-def time2vector(time, end = None):
-    end = end or len(time.datas)
-    vector = time_vector()
-    for i in xrange(end):
-        d = time.datas[i]
-        if d.unit - int(d.unit) > 0:
-            low_unit = int(math.ceil(d.unit))
-            unit_start = unit_min(d.unit)
-            low_unit_start = unit_min(low_unit)
-            delta = unit2unit(1, d.unit, low_unit)
-            low_value = low_unit_start + delta * (d.value - unit_start)
-            vector[low_unit] = low_value
-
-        else:
-            vector[d.unit] = d.value
-
-    return vector
-
-'''
 
 
 def transform_time_by_modify_unit(v_seed, unit, value):
@@ -67,7 +16,7 @@ def transform_time_by_modify_unit(v_seed, unit, value):
         v = weekday_vector(v_seed, value)
         vector[0:td.unit.day + 1] = v[0:td.unit.day + 1]
 
-    elif unit == td.unit.quarter or unit == td.unit.season:
+    elif unit == td.unit.season:
         low_unit = int(math.ceil(unit))
         unit_start = unit_min(unit)
         low_unit_start = unit_min(low_unit)
@@ -80,6 +29,9 @@ def transform_time_by_modify_unit(v_seed, unit, value):
         # duration
         duration = time_vector()
         duration[low_unit] = delta
+
+    elif unit == td.unit.quarter:
+        vector[td.unit.minute] = unit2unit(value, unit, td.unit.minute)
 
     else:
         vector[unit] = value
@@ -108,14 +60,14 @@ def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
 
 
     if unit == td.unit.week:
-        vector = start_time_at_week(vector[0], vector[1], number)
+        vector = start_time_at_week(v_seed[0], v_seed[1], number)
         duration = time_vector()
         duration[td.unit.day] = unit2unit(1, td.unit.week, td.unit.day)
 
     else:
         high_unit, reg_unit = int(unit-1), int(math.ceil(unit))
         vector, duration = transform_time_by_modify_unit(v_seed, unit, unit_min(unit))
-        vector[reg_unit] = None
+        vector[reg_unit] = v_seed[reg_unit]
 
         if number < 0:
             for i in xrange(reg_unit+1):
@@ -136,15 +88,27 @@ def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
 
 
 
+def shift_time(v_seed, unit, shift, weekday = None):
+    # set start time by v_seed
+    vector = duration = None
 
-def shift_time(v_seed, unit, shift):
-    # set start time by v
-    dt = vec2datetime(v_seed)
-    value = get_datetime_unit(dt, unit)
-    vector, duration = transform_time_by_modify_unit(v_seed, unit, value)
+    # weekday
+    if unit == td.unit.week:
+        if weekday != None:
+            vector, _ = transform_time_by_modify_unit(v_seed, unit, weekday)
+        else:
+            vector, _ = transform_time_by_modify_unit(v_seed, unit, 1)
+            duration = time_vector()
+            duration[td.unit.day] = unit2unit(1, unit, td.unit.day)
 
-    # delta time
+    else:
+        dt = vec2datetime(v_seed)
+        value = get_datetime_unit(dt, unit)
+        vector, duration = transform_time_by_modify_unit(v_seed, unit, value)
+
+    # delta
     vector = delta_time(vector, unit, shift)
+
     return vector, duration
 
 
