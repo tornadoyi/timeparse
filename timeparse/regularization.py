@@ -198,9 +198,6 @@ class TimeRegularization(ChunkRegularization):
 
 
 
-
-
-
 class DurationRegularization(ChunkRegularization):
 
     def regularize(self, time, args):
@@ -213,14 +210,11 @@ class DurationRegularization(ChunkRegularization):
     def dropout_directs(self, time, args):
         vector = tf.time_vector()
         negtive = False
-        for i in xrange(len(time.units)):
-            u, v, d = time.units[i], time.values[i], time.directs[i]
-            if u == td.unit.week:
-                u = td.unit.day
-                v = tf.unit2unit(v, td.unit.week, td.unit.day)
-            elif u == td.unit.quarter:
-                u = td.unit.minute
-                v = tf.unit2unit(v, td.unit.quarter, td.unit.minute)
+        for i in xrange(len(time.datas)):
+            u, v, d = time[i].unit, time[i].value, time[i].direct
+            if u - int(u) > 0:
+                v = tf.unit2unit(v, u, int(u+1))
+                u = int(u+1)
 
             vector[u] = v if vector[u] == None else vector[u] + v
             if d and d.value < 0: negtive = True
@@ -229,6 +223,7 @@ class DurationRegularization(ChunkRegularization):
             for i in xrange(len(vector)):
                 if vector[i] == None: continue
                 vector[i] *= -1
+
         return vector
 
 
@@ -264,7 +259,7 @@ class SingleDurationRegularization(GroupRegularization):
     def regularize(self, t, args):
         unit = t.units[-1]
         start = args.timecore.vector
-        start = tf.delta_time(start, unit, 1*t.directs[0].value)
+        start = tf.delta_time(start, unit, 1*t[0].direct)
         duration = self.duration.regularize(t, args)
         return VectorTime(t.sentence, t.pos_span, start=start, duration=duration)
 

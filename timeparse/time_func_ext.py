@@ -129,7 +129,6 @@ def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
             vector = padding_min(vector, reg_unit)
             number = np.max((number-1, 0))
 
-        #number = number if number == 0 else number - 1 if number > 0 else number + 1
         vector = delta_time(vector, unit, number)
 
     return vector, duration
