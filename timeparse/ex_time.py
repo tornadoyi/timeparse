@@ -53,7 +53,7 @@ def parse(sentence, splits, pos, endpos, args):
 
 
 def parse_options(g_args):
-    options = g_args.options or qdict()
+    g_args = g_args or qdict()
     args = qdict()
 
     # collector
@@ -63,15 +63,15 @@ def parse_options(g_args):
     args.timecore = g_args.timecore
 
     # padding
-    if options.padding == "history": args.padding = prefer.HistoryPadding()
-    elif options.padding == "future": args.padding = prefer.FuturePadding()
+    if g_args.padding == "history": args.padding = prefer.HistoryPadding()
+    elif g_args.padding == "future": args.padding = prefer.FuturePadding()
     else: args.padding = prefer.RecentPadding()
 
     # fulltime
-    args.fulltime = options.fulltime if options.fulltime != None else False
+    args.fulltime = g_args.fulltime if g_args.fulltime != None else False
 
     # infinity
-    args.infinity = prefer.Infinity(options.infinity if options.infinity != None else 0)
+    args.infinity = prefer.Infinity(g_args.infinity if g_args.infinity != None else 0)
 
     return args
 

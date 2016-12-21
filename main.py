@@ -8,7 +8,7 @@ from timeparse.ex_time import parse as time_parse
 
 def demo(args):
     cases = [
-        u"15年3月24日2点30分59秒",
+
         u"前三天",
         u"5月前三天",
         u"三天后",
@@ -54,7 +54,8 @@ def demo(args):
 
 
 def test(args):
-    pass
+    import autotest
+    autotest.test(args)
 
 
 
