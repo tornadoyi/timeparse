@@ -257,7 +257,7 @@ class SingleTimeRegularization(GroupRegularization):
 class SingleDurationRegularization(GroupRegularization):
 
     def regularize(self, t, args):
-        unit = t.units[-1]
+        unit = t[-1].unit
         start = args.timecore.vector
         start = tf.delta_time(start, unit, 1*t[0].direct)
         duration = self.duration.regularize(t, args)
