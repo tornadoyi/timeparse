@@ -225,8 +225,22 @@ class calendar_merger(merger):
 class holiday_merger(merger):
     def __init__(self):
         merger.__init__(self)
+        self.add_front_process(Time, self.add_year) # 16年 大年初一
+
         self.add_back_process(Duration, self.duration_process) # 国庆 后三天
         self.add_back_process(Time, self.time_process)  # 国庆 倒数第三天
+
+
+
+    def add_year(self, args, this, other):
+        if len(other.datas) > 1: return command_keep_2
+        if other.datas[0].unit != td.unit.year: return command_keep_2
+        str, st, ed = self.concat_cell_info(this, other)
+
+        holiday = copy.deepcopy(this)
+        holiday.year = copy.deepcopy(other.datas[0])
+        holiday.pos_span = (st, ed)
+        return holiday
 
 
     def duration_process(self, args, this, other):
@@ -242,10 +256,11 @@ class holiday_merger(merger):
 
         # gen start
         rel_dir = qdict(direct=-1, method=td.method.number) if this.day < 0 else {}
+        year = [self.year] if self.year != None else []
         if duration[0].direct >= 0:
-            start = Time(this.sentence, this.pos_span, [UD(td.unit.month, this.month), UD(td.unit.day, this.day, **rel_dir)], this.lunar)
+            start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.month), UD(td.unit.day, this.day, **rel_dir)], this.lunar)
         else:
-            start = Time(this.sentence, this.pos_span, [UD(td.unit.month, this.month), UD(td.unit.day, this.day+this.duration-1, **rel_dir)], this.lunar)
+            start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.month), UD(td.unit.day, this.day+this.duration-1, **rel_dir)], this.lunar)
 
         return StartDuration(str, (st, ed), start, duration)
 

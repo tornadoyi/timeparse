@@ -45,6 +45,6 @@ add_case(u"后3个月2天", sd_time([s_month(1)], vector(month=3, day=2) ))
 add_case(u"阴历2016年1月1日", s_time([l2s([2016, 1, 1])]))
 add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
 add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
-
+add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 
 
