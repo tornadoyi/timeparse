@@ -43,12 +43,10 @@ def demo(args):
     ]
 
     special_case = [
-        u"前两天零3小时",
-        u"前2周",
-        u"前两天",
+        u"昨天2点30分",
     ]
 
-    for case in special_case:
+    for case in cases:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)

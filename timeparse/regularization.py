@@ -82,7 +82,7 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_collector(t):
             # direct that relative to now is needn't padding
             # weekday without direct is needn't padding
-            if t[0].relative == td.relative.now or t[0].weekday == True: return t
+            if t[0].method == td.method.shift or t[0].weekday == True: return t
 
             end_unit = int(math.ceil(time[0].unit)) - 1
             for i in xrange(end_unit, -1, -1):
@@ -108,8 +108,8 @@ class TimeRegularization(ChunkRegularization):
             t[hour_idx].value = v_hour
             day_idx = t.unit_index(td.unit.day)
             if next_day and day_idx != None:
-                relative, direct = t[day_idx].relative, t[day_idx].direct
-                if relative == td.relative.none or direct > 0:
+                method, direct = t[day_idx].method, t[day_idx].direct
+                if method == td.method.none or direct > 0:
                     t[day_idx].value += 1
                 elif direct == 0:
                     t[day_idx].value += 1
@@ -122,7 +122,7 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_preference(t):
             # direct that relative to now is needn't padding
             # convert week
-            if t[0].relative == td.relative.now: return t
+            if t[0].method == td.method.shift: return t
             values = args.padding(t[0].unit, t[0].value, t.pos_span, args)
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
@@ -167,10 +167,10 @@ class TimeRegularization(ChunkRegularization):
 
 
         for i in xrange(len(time.units)):
-            unit, value, direct, relative = time[i].unit, time[i].value, time[i].direct, time[i].relative
+            unit, value, direct, method = time[i].unit, time[i].value, time[i].direct, time[i].method
 
             # absolute unit
-            if relative == td.relative.none:
+            if method == td.method.none:
                 if unit - int(unit) == 0:
                     vector[unit] = value
                 else:
@@ -179,7 +179,7 @@ class TimeRegularization(ChunkRegularization):
 
 
             # relative to now
-            elif relative == td.relative.now:
+            elif method == td.method.shift:
                 if time[i].weekday == True:
                     vec, dur = tf.shift_time(curvector, unit, shift=direct, weekday=value)
                 else:
@@ -188,7 +188,7 @@ class TimeRegularization(ChunkRegularization):
 
 
             # relative to parent
-            elif relative == td.relative.parent:
+            elif method == td.method.number:
                 vec, dur = tf.transform_time_at_the_number_of_unit(vector, duration, unit, value*direct)
                 update_vectors(vec, dur, unit, overlap=True)
 
@@ -286,13 +286,17 @@ class StartEndRegularization(GroupRegularization):
 
         if t.start == float('-inf'):
             end, duration = self.time.regularize(t.end, args)
-            start = args.infinity(t.start, end, args)
+            inf_unit = tf.accuracy(end)[-1]
+            end = args.timecore.padding(end)
+            start = args.infinity(t.start, end, inf_unit, args)
             if duration: end = tf.shift_time(end, duration)
 
 
         elif t.end == float('inf'):
             start, _ = self.time.regularize(t.start, args)
-            end = args.infinity(start, t.end, args)
+            inf_unit = tf.accuracy(start)[-1]
+            start = args.timecore.padding(start)
+            end = args.infinity(start, t.end, inf_unit, args)
 
         else:
             start, _ = self.time.regularize(t.start, args)

@@ -128,15 +128,13 @@ class Infinity(Prefer):
         self.delta = delta
 
 
-    def do(self, start, end, args):
+    def do(self, start, end, inf_unit, args):
         v = None
         if start == float("-inf"):
-            acc = tf.accuracy(end)
-            v = tf.delta_time(end, acc[1], -1 * self.delta)
+            v = tf.delta_time(end, inf_unit, -1 * self.delta)
 
         elif end == float("inf"):
-            acc = tf.accuracy(start)
-            v = tf.delta_time(start, acc[1], 1 * self.delta)
+            v = tf.delta_time(start, inf_unit, 1 * self.delta)
 
         else: assert False
 

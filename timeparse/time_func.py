@@ -230,6 +230,7 @@ def padding_max(v, unit = td.unit.second): return padding(v, unit, True)
 def padding_min(v, unit = td.unit.second): return padding(v, unit, False)
 
 
+
 class TimeCore(object):
     def __init__(self):
         self._timestamp = time.time()
@@ -251,3 +252,10 @@ class TimeCore(object):
 
     def unit(self, u): return get_datetime_unit(self.datetime, u)
 
+    def padding(self, v, unit = td.unit.second):
+        v = copy.deepcopy(v)
+        c = self.vector
+        for i in xrange(len(c)):
+            if v[i] != None: continue
+            v[i] = c[i]
+        return v

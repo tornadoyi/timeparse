@@ -85,8 +85,18 @@ time_unit_convert = {
 
 class relative():
     none = None
-    now = 0
     parent = -1
+    now = 0
+
+
+class method():
+    none = None
+    shift = 0
+    number = 1
+    delta = 2
+
+
+
 
 
 
@@ -156,8 +166,8 @@ word_class_dict = {
     },
 
 
-    # (relative, unit, front-time, back-time)
-    # relative 0: currrent -1: previous unit
+    # (relative, with-unit, front-time, back-time)
+    # relative:  0: now -1:parent
     wordtype.direct:{
         u"今": (0, 0, None, None), u"本": (0, 0, None, None), u"当": (0, 0, None, None),
         u"去": (0, -1, None, None), u"上": (0, -1, (-1, 0), None), u"昨": (0, -1, None, None),

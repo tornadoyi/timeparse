@@ -119,9 +119,9 @@ class Holiday(TimeCell):
 
 
     def upgrade(self):
-        rel_dir = qdict(direct=-1, relative=td.relative.parent) if self.day < 0 else {}
+        rel_dir = qdict(direct=-1, relative=td.method.number) if self.day < 0 else {}
         start = Time(self.sentence, self.pos_span, [UD(td.unit.month, self.month), UD(td.unit.day, self.day, **rel_dir)], self.lunar)
-        duration = Duration(self.sentence, self.pos_span, UD(td.unit.day, self.duration, direct=1, relative=td.relative.parent))
+        duration = Duration(self.sentence, self.pos_span, UD(td.unit.day, self.duration, direct=1, relative=td.method.number))
         return StartDuration(self.sentence, self.pos_span, start, duration)
 
 
@@ -155,7 +155,9 @@ class UD(qdict):
         if self.weekday: uv = "{0}{1}".format(td.time_unit_desc[self.unit], self.value)
 
         # direct
-        if self.relative != None: other += "{0}{1}".format(self.direct, "c" if self.relative == td.relative.now else "p")
+        if self.method != None: other += "{0}{1}".format(
+            self.direct,
+            "s" if self.method == td.method.shift else "d" if self.method == td.method.delta else "n")
 
         return "{0}({1})".format(uv, other) if len(other) > 0 else uv
 
@@ -239,12 +241,17 @@ class TimeGroup(TimeCell):
     def __init__(self, sentence, pos_span):
         TimeCell.__init__(self, sentence, pos_span)
 
+    def normalize_time(self, t):
+        if isinstance(t, Time) or t == float("-inf") or t == float("inf"): return t
+        elif isinstance(t, Duration): return Time(t.sentence, t.pos_span, t.datas)
+        else: assert False
+
 
 class StartEnd(TimeGroup):
     def __init__(self, sentence, pos_span, start, end):
         TimeGroup.__init__(self, sentence, pos_span)
-        self._start = start
-        self._end = end
+        self._start = self.normalize_time(start)
+        self._end = self.normalize_time(end)
 
     def __str__(self):
         s = TimeGroup.__str__(self)
@@ -261,7 +268,7 @@ class StartEnd(TimeGroup):
 class StartDuration(TimeGroup):
     def __init__(self, sentence, pos_span, start, duration):
         TimeGroup.__init__(self, sentence, pos_span)
-        self._start = start
+        self._start = self.normalize_time(start)
         self._duration = duration
 
     def __str__(self):

@@ -66,7 +66,7 @@ class s_weekday(cmd):
     def __call__(self, args):
         value = self.get_value(self.value)
         shift = self.get_value(self.shift)
-        vector = tf.weekday_vector(timecore.vector(), value)
+        vector = tf.weekday_vector(timecore.vector, value)
         vector = tf.delta_time(vector, td.unit.week, shift)
         return tf.keep_vector(vector, td.unit.day)
 
