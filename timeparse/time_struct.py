@@ -110,6 +110,7 @@ class Calendar(TimeCell):
 
 
 class Holiday(TimeCell):
+    time_level = 1
     def __init__(self, sentence, pos_span, month, day, duration, lunar):
         TimeCell.__init__(self, sentence, pos_span)
         self.month = month
@@ -129,6 +130,7 @@ class Holiday(TimeCell):
 
 
 class Season(TimeCell):
+    time_level = 1
     def __init__(self, sentence, pos_span, start_month, end_month):
         TimeCell.__init__(self, sentence, pos_span)
         self.start_month = start_month

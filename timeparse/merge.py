@@ -225,22 +225,10 @@ class calendar_merger(merger):
 class holiday_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_front_process(Time, self.add_year) # 16年 大年初一
 
         self.add_back_process(Duration, self.duration_process) # 国庆 后三天
         self.add_back_process(Time, self.time_process)  # 国庆 倒数第三天
 
-
-
-    def add_year(self, args, this, other):
-        if len(other.datas) > 1: return command_keep_2
-        if other.datas[0].unit != td.unit.year: return command_keep_2
-        str, st, ed = self.concat_cell_info(this, other)
-
-        holiday = copy.deepcopy(this)
-        holiday.year = copy.deepcopy(other.datas[0])
-        holiday.pos_span = (st, ed)
-        return holiday
 
 
     def duration_process(self, args, this, other):
@@ -314,6 +302,8 @@ class time_merger(merger):
         self.add_back_process(Duration, self.duration_process) # 3月 前5天
         self.add_back_process(Digit, self.digit_process) # 8月15  l1 eat l0
 
+        self.add_back_process(Holiday, self.add_holiday_year)  # 去年 国庆
+
     def time_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
@@ -349,6 +339,16 @@ class time_merger(merger):
         t.pos_span = (st, ed)
         return t
 
+
+    def add_holiday_year(self, args, this, other):
+        if len(this.datas) > 1: return command_keep_2
+        if this.datas[0].unit != td.unit.year: return command_keep_2
+        str, st, ed = self.concat_cell_info(this, other)
+
+        holiday = copy.deepcopy(other)
+        holiday.year = copy.deepcopy(this.datas[0])
+        holiday.pos_span = (st, ed)
+        return holiday
 
 
 @singleton
