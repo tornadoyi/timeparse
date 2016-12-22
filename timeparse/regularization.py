@@ -82,7 +82,9 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_collector(t):
             # direct that relative to now is needn't padding
             # weekday without direct is needn't padding
-            if t[0].method == td.method.shift or t[0].weekday == True: return t
+            if  t[0].method == td.method.shift or \
+                t[0].method == td.method.delta or \
+                t[0].weekday == True: return t
 
             end_unit = int(math.ceil(time[0].unit)) - 1
             for i in xrange(end_unit, -1, -1):
@@ -122,7 +124,7 @@ class TimeRegularization(ChunkRegularization):
         def padding_units_by_preference(t):
             # direct that relative to now is needn't padding
             # convert week
-            if t[0].method == td.method.shift: return t
+            if t[0].method == td.method.shift or t[0].method == td.method.delta: return t
             values = args.padding(t[0].unit, t[0].value, t.pos_span, args)
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
@@ -191,6 +193,12 @@ class TimeRegularization(ChunkRegularization):
             elif method == td.method.number:
                 vec, dur = tf.transform_time_at_the_number_of_unit(vector, duration, unit, value*direct)
                 update_vectors(vec, dur, unit, overlap=True)
+
+
+            # delta time
+            elif method == td.method.delta:
+                vec = tf.delta_time(curvector, unit, value*direct)
+                update_vectors(vec, None, unit)
 
             else: assert False
 

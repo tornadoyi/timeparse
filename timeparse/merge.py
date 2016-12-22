@@ -183,14 +183,14 @@ class direct_merger(merger):
             # -inf ~ x
             elif d_st == float('-inf') and d_ed < float('inf'):
                 start = d_st
-                other[0].relative = td.method.delta
+                other[0].method = td.method.delta
                 other[0].direct = d_ed
                 return StartEnd(str, (st, ed), start, other)
 
             # x ~ inf
             elif d_st > float('-inf') and d_ed == float('inf'):
                 end = d_ed
-                other[0].relative = td.method.delta
+                other[0].method = td.method.delta
                 other[0].direct = d_st
                 return StartEnd(str, (st, ed), other, end)
 
