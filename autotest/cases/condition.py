@@ -48,3 +48,6 @@ add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
 add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 
 
+
+# holiday
+add_case(u"今年国庆前三天", sd_time([s_year(0), 10, 1], [vector(day=3)]) )

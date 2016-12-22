@@ -171,7 +171,7 @@ class direct_merger(merger):
                     other[0].direct = d_ed
 
                 elif d_ed == 0:
-                    other[0].relative = relative2method(this.relative)
+                    other[0].method = relative2method(this.relative)
                     other[0].direct = d_st
 
                 else: assert False # todo
@@ -256,7 +256,7 @@ class holiday_merger(merger):
 
         # gen start
         rel_dir = qdict(direct=-1, method=td.method.number) if this.day < 0 else {}
-        year = [self.year] if self.year != None else []
+        year = [this.year] if this.year != None else []
         if duration[0].direct >= 0:
             start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.month), UD(td.unit.day, this.day, **rel_dir)], this.lunar)
         else:
@@ -279,7 +279,7 @@ class holiday_merger(merger):
             other[day_idx].value = end_day + delta
             other[day_idx].direct = td.method.none
 
-        rel_dir = qdict(direct=-1, relative=td.method.number) if this.day < 0 else {}
+        rel_dir = qdict(direct=-1, method=td.method.number) if this.day < 0 else {}
         start = Time(this.sentence, this.pos_span, UD(td.unit.month, this.month, **rel_dir), this.lunar)
         start.add(other.datas)
 
