@@ -14,10 +14,31 @@ hour = td.unit.hour
 minute = td.unit.minute
 second = td.unit.second
 
+def excute(cmds, args = None):
+    args = args if args != None else qdict(curvector=tf.time_vector())
+    vector = tf.time_vector()
+    unit = 0
+    for c in cmds:
+        if isinstance(c, cmd):
+            vec = c(args)
+            for v in vec:
+                if v == None: break
+                vector[unit] = v
+                unit += 1
+
+        else:
+            vector[unit] = c
+            unit += 1
+    return vector
 
 class cmd(object):
     def get_value(self, v, args):
-        return v(args) if isinstance(v, cmd) else v
+        if isinstance(v, cmd):
+            return v(args)
+        elif type(v) == list:
+            return excute(v, args)
+        else:
+            return copy.deepcopy(v)
 
 
 
@@ -224,6 +245,8 @@ class d_quarter(delta):
 
 ## ======================================== time command ======================================== ##
 
+
+
 class create_time(cmd):
     def __init__(self, start, end, duration):
         self.start = start
@@ -231,28 +254,11 @@ class create_time(cmd):
         self.duration = duration
 
     def __call__(self, args):
-        start = self.excute(self.start)
-        end = self.excute(self.end)
-        duration = self.excute(self.duration)
+        start = excute(self.start)
+        end = excute(self.end)
+        duration = excute(self.duration)
 
         return ts.VectorTime("", (0, 0), start, end, duration)
-
-    def excute(self, cmds):
-        vector = tf.time_vector()
-        unit = 0
-        args = qdict(curvector = vector)
-        for c in cmds:
-            if isinstance(c, cmd):
-                vec = c(args)
-                for v in vec:
-                    if v == None: break
-                    vector[unit] = v
-                    unit += 1
-
-            else:
-                vector[unit] = c
-                unit += 1
-        return vector
 
 
 class s_time(create_time):
@@ -279,7 +285,6 @@ class l2s(cmd):
 
     def __call__(self, args):
         vector = self.get_value(self.vector, args)
-        vector = copy.deepcopy(vector)
         (y, m, d) = tf.lunar2solar(vector[0], vector[1], vector[2])
         vector[0] = y
         vector[1] = m
@@ -292,7 +297,6 @@ class s2l(cmd):
 
     def __call__(self, args):
         vector = self.get_value(self.vector, args)
-        vector = copy.deepcopy(vector)
         (y, m, d) = tf.solar2lunar(vector[0], vector[1], vector[2])
         vector[0] = y
         vector[1] = m

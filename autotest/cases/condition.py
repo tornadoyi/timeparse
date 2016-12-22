@@ -51,3 +51,14 @@ add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 
 # holiday
 add_case(u"今年国庆前三天", sd_time([s_year(0), 10, 1], vector(day=3)) )
+add_case(u"去年中秋", sd_time([l2s([s_year(-1), 8, 15])], vector(day=3)) )
+#add_case(u"今年过年", sd_time([l2s([s_year(1), 1, 1])], vector(day=7)) )
+
+
+# special hour
+add_case(u"今天下午3点", s_time([s_day(0), 15]) )
+add_case(u"明天早上6点", s_time([s_day(1), 6]) )
+add_case(u"昨天中午11点", s_time([s_day(-1), 11]) )
+add_case(u"昨天中午1点", s_time([s_day(-1), 13]) )
+add_case(u"昨天晚上11点", s_time([s_day(-1), 23]) )
+add_case(u"昨晚1点", s_time([s_day(0), 1]) )

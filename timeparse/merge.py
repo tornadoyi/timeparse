@@ -106,6 +106,7 @@ class direct_merger(merger):
     def __init__(self):
         merger.__init__(self)
         self.add_back_process(Unit, self.unit_process) # 上 周
+        self.add_back_process(SpecialHour, self.special_hour_process) # 昨 晚 / 今早
 
         self.add_back_process(Time, self.time_back_process) # 前 三周 / 上 周三
         self.add_front_process(Time, self.time_front_process)  # 三周前 / 周三前
@@ -124,6 +125,16 @@ class direct_merger(merger):
         value = np.abs(v)
         return Time(str, (st, ed), UD(other.value, value, method=td.method.shift, direct=v / value if v != 0 else 0))
 
+
+
+    def special_hour_process(self, args, this, other):
+        unit = Unit(other.sentence, other.pos_span, td.unit.day)
+        t = self.unit_process(args, this, unit)
+        if t == None: return command_keep_2
+
+        # save to collector
+        args.collector.collect_special_hour(other)
+        return t
 
 
     def time_back_process(self, args, this, other): return self._convert(args, this, other, True)
@@ -275,7 +286,7 @@ class holiday_merger(merger):
 
 
 @singleton
-class speical_hour_merger(merger):
+class special_hour_merger(merger):
     def __init__(self):
         merger.__init__(self)
         self.add_back_process(Time, self.time_process)  # 下午 8点
@@ -430,7 +441,7 @@ class merge_manager():
             Direct: direct_merger(),
             Calendar: calendar_merger(),
             Holiday: holiday_merger(),
-            SpeicalHour: speical_hour_merger(),
+            SpecialHour: special_hour_merger(),
 
             Time: time_merger(),
             Duration: duration_merger(),

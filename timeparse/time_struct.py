@@ -95,7 +95,7 @@ class Direct(TimeCell):
 
 
 
-class SpeicalHour(TimeCell):
+class SpecialHour(TimeCell):
     def __init__(self, sentence, pos_span, start, end, convert):
         TimeCell.__init__(self, sentence, pos_span)
         self.convert = convert

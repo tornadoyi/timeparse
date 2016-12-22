@@ -252,7 +252,7 @@ class special_hour_re(time_re):
         # parse
         info = self.parse_special_hour(m.group(1))
 
-        return SpeicalHour(str, (st, ed), *info)
+        return SpecialHour(str, (st, ed), *info)
 
 
 

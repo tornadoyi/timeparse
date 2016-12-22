@@ -40,7 +40,7 @@ def demo(args):
     ]
 
     special_case = [
-        u"2016年大年三十",
+        u"昨晚1点",
     ]
 
     for case in special_case:
