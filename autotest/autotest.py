@@ -62,7 +62,6 @@ class AutoTest(object):
             if cases == None: continue
             for idx in xrange(len(cases)):
                 (question, answers) = cases[idx]
-
                 times = time_parse(question, None, 0, len(question), command.args)
                 checks = []
                 for answer in answers: checks.append(answer(command.args))

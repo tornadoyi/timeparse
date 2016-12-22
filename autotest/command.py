@@ -21,10 +21,11 @@ def excute(cmds, args = None):
     for c in cmds:
         if isinstance(c, cmd):
             vec = c(args)
-            for v in vec:
+            for i in xrange(len(vec)):
+                v = vec[i]
                 if v == None: break
-                vector[unit] = v
-                unit += 1
+                if vector[i] == None: vector[i] = v
+                if i == unit: unit += 1
 
         else:
             vector[unit] = c
@@ -180,6 +181,8 @@ class n_second(number):
 
 
 
+
+
 ## ======================================== delta command ======================================== ##
 
 class d_time(cmd):
@@ -249,9 +252,9 @@ class d_quarter(delta):
 
 class create_time(cmd):
     def __init__(self, start, end, duration):
-        self.start = start
-        self.end = end
-        self.duration = duration
+        self.start = start if type(start) == list else [start]
+        self.end = end if type(end) == list else [end]
+        self.duration = duration if type(duration) == list else [duration]
 
     def __call__(self, args):
         start = excute(self.start)
@@ -304,7 +307,14 @@ class s2l(cmd):
         return vector
 
 
+class keep(cmd):
+    def __init__(self, vector, unit):
+        self.vector = vector
+        self.unit = unit
 
+    def __call__(self, args):
+        vector = self.get_value(self.vector, args)
+        return tf.keep_vector(vector, self.unit)
 '''
 # time struct
 def create_time(st = None, ed = None, dur = None):
