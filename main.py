@@ -43,7 +43,7 @@ def demo(args):
     ]
 
     special_case = [
-        u"一周后",
+        u"3年后",
     ]
 
     for case in special_case:

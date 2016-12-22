@@ -71,7 +71,7 @@ def parse_options(g_args):
     args.fulltime = g_args.fulltime if g_args.fulltime != None else False
 
     # infinity
-    args.infinity = prefer.Infinity(g_args.infinity if g_args.infinity != None else 0)
+    args.infinity = prefer.Infinity(g_args.infinity if g_args.infinity != None else (0, 0, 0, 0, 0, 0))
 
     return args
 

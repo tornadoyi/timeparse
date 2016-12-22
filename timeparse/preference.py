@@ -123,18 +123,18 @@ class FuturePadding(UnitPadding):
 # ============================================== Infinity ============================================== #
 
 class Infinity(Prefer):
-    def __init__(self, delta):
+    def __init__(self, deltas):
         Prefer.__init__(self)
-        self.delta = delta
+        self.deltas = deltas
 
 
     def do(self, start, end, inf_unit, args):
         v = None
         if start == float("-inf"):
-            v = tf.delta_time(end, inf_unit, -1 * self.delta)
+            v = tf.delta_time(end, inf_unit, -1 * self.deltas[inf_unit])
 
         elif end == float("inf"):
-            v = tf.delta_time(start, inf_unit, 1 * self.delta)
+            v = tf.delta_time(start, inf_unit, 1 * self.deltas[inf_unit])
 
         else: assert False
 

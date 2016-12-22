@@ -5,7 +5,7 @@ from timeparse import time_func_ext as tf
 from timeparse import time_struct as ts
 
 timecore = tf.TimeCore()
-args = qdict(timecore = timecore, infinity=7, fulltime=False, padding="recent")
+args = qdict(timecore = timecore, infinity=[0, 0, 0, 0, 0, 0], fulltime=False, padding="recent")
 
 year = td.unit.year
 month = td.unit.month
@@ -16,7 +16,8 @@ second = td.unit.second
 
 
 class cmd(object):
-    def get_value(self, v): return v() if isinstance(v, cmd) else v
+    def get_value(self, v, args):
+        return v(args) if isinstance(v, cmd) else v
 
 
 
@@ -29,7 +30,7 @@ class sft(cmd):
         self.value = value
 
     def __call__(self, args):
-        value = self.get_value(self.value)
+        value = self.get_value(self.value, args)
         vector = tf.delta_time(timecore.vector, self.unit, value)
         return tf.keep_vector(vector, self.unit)
 
@@ -64,8 +65,8 @@ class s_weekday(cmd):
         self.shift = shift
 
     def __call__(self, args):
-        value = self.get_value(self.value)
-        shift = self.get_value(self.shift)
+        value = self.get_value(self.value, args)
+        shift = self.get_value(self.shift, args)
         vector = tf.weekday_vector(timecore.vector, value)
         vector = tf.delta_time(vector, td.unit.week, shift)
         return tf.keep_vector(vector, td.unit.day)
@@ -77,8 +78,8 @@ class s_week(cmd):
         self.weekday = weekday
 
     def __call__(self, args):
-        value = self.get_value(self.value)
-        weekday = self.get_value(self.weekday)
+        value = self.get_value(self.value, args)
+        weekday = self.get_value(self.weekday, args)
         vector = tf.weekday_vector(timecore.vector, weekday)
         vector = tf.delta_time(vector, td.unit.week, value)
         return tf.keep_vector(vector, td.unit.day)
@@ -98,8 +99,6 @@ class s_week_ed(s_week):
 
 ## ======================================== number command ======================================== ##
 
-
-
 class number(cmd):
     def __init__(self, unit, value):
         self.unit = unit
@@ -107,7 +106,7 @@ class number(cmd):
 
     def __call__(self, args):
         (min, max) = tf.unit_range_at_time(args.curvector, self.unit)
-        value = self.get_value(self.value)
+        value = self.get_value(self.value, args)
         return min if value == 0 else min + value - 1 if value > 0 else max + value + 1
 
 class n_year(number):
@@ -133,6 +132,68 @@ class n_minute(number):
 class n_second(number):
     def __init__(self, value):
         number.__init__(self, td.unit.second, value)
+
+
+
+## ======================================== delta command ======================================== ##
+
+class d_time(cmd):
+    def __init__(self, vector, unit, value):
+        self.vector = vector
+        self.unit = unit
+        self.value = value
+
+    def __call__(self, args):
+        value = self.get_value(self.value, args)
+        vector = self.get_value(self.vector, args)
+        return tf.delta_time(vector, self.unit, self.value)
+
+
+class delta(cmd):
+    def __init__(self, unit, value):
+        self.unit = unit
+        self.value = value
+
+    def __call__(self, args):
+        value = self.get_value(self.value, args)
+        return tf.delta_time(timecore.vector, self.unit, self.value)
+
+class d_year(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.year, value)
+
+class d_month(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.month, value)
+
+class d_day(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.day, value)
+
+class d_hour(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.hour, value)
+
+class d_minute(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.minute, value)
+
+class d_second(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.second, value)
+
+class d_week(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.week, value)
+
+class d_season(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.season, value)
+
+class d_quarter(delta):
+    def __init__(self, value):
+        delta.__init__(self, td.unit.quarter, value)
+
 
 
 
@@ -181,6 +242,12 @@ class se_time(create_time):
 class sd_time(create_time):
     def __init__(self, start, duration):
         create_time.__init__(self, start, [], duration)
+
+
+
+
+
+
 
 
 '''
