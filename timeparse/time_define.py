@@ -207,7 +207,7 @@ word_class_dict = {
         u"中秋": (calendar.lunar, 8, 15, 3),
         u"春节": (calendar.lunar, 1, 1, 7),
         u"过年": (calendar.lunar, 1, 1, 7),
-        u"大年三十": (calendar.lunar, 12, -1, 1),
+        u"大年三十": (calendar.lunar, 12, 30, 1),
         u"大年30": (calendar.lunar, 12, -1, 1),
         u"年三十": (calendar.lunar, 12, -1, 1),
         u"除夕": (calendar.lunar, 12, -1, 1),

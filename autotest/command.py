@@ -95,6 +95,30 @@ class s_week_ed(s_week):
         s_week.__init__(self, value, 7)
 
 
+class s_season(cmd):
+    def __init__(self, value, end):
+        self.value = value
+        self.end = end
+
+    def __call__(self, args):
+        value = self.get_value(self.value, args)
+        year = timecore.unit(td.unit.year)
+        se = timecore.unit(td.unit.season)
+        st_m = 1 + (se-1) * 3
+        ed_m = st_m + 2
+        month = ed_m if self.end else st_m
+        return tf.delta_time(tf.time_vector(year=year, month=month), td.unit.season, value)
+
+
+class s_season_st(s_season):
+    def __init__(self, value):
+        s_season.__init__(self, value, False)
+
+class s_season_ed(s_season):
+    def __init__(self, value):
+        s_season.__init__(self, value, True)
+
+
 
 
 ## ======================================== number command ======================================== ##
@@ -246,7 +270,34 @@ class sd_time(create_time):
 
 
 
+## ======================================== other command ======================================== ##
+vector = tf.time_vector
 
+class l2s(cmd):
+    def __init__(self, vector):
+        self.vector = vector
+
+    def __call__(self, args):
+        vector = self.get_value(self.vector, args)
+        vector = copy.deepcopy(vector)
+        (y, m, d) = tf.lunar2solar(vector[0], vector[1], vector[2])
+        vector[0] = y
+        vector[1] = m
+        vector[2] = d
+        return vector
+
+class s2l(cmd):
+    def __init__(self, vector):
+        self.vector = vector
+
+    def __call__(self, args):
+        vector = self.get_value(self.vector, args)
+        vector = copy.deepcopy(vector)
+        (y, m, d) = tf.solar2lunar(vector[0], vector[1], vector[2])
+        vector[0] = y
+        vector[1] = m
+        vector[2] = d
+        return vector
 
 
 

@@ -119,9 +119,9 @@ class Holiday(TimeCell):
 
 
     def upgrade(self):
-        rel_dir = qdict(direct=-1, relative=td.method.number) if self.day < 0 else {}
-        start = Time(self.sentence, self.pos_span, [UD(td.unit.month, self.month), UD(td.unit.day, self.day, **rel_dir)], self.lunar)
-        duration = Duration(self.sentence, self.pos_span, UD(td.unit.day, self.duration, direct=1, relative=td.method.number))
+        rel_dir = qdict(direct=-1, method=td.method.number) if self.day < 0 else {}
+        start = Time(self.sentence, self.pos_span, [UD(td.unit.month, self.month), UD(td.unit.day, np.abs(self.day), **rel_dir)], self.lunar)
+        duration = Duration(self.sentence, self.pos_span, UD(td.unit.day, self.duration, direct=1))
         return StartDuration(self.sentence, self.pos_span, start, duration)
 
 

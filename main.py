@@ -9,7 +9,6 @@ from timeparse.ex_time import parse as time_parse
 def demo(args):
     cases = [
 
-        u"前三天",
         u"5月前三天",
         u"三天后",
         u"昨天2点30分",
@@ -36,14 +35,12 @@ def demo(args):
         u"上周2",
         u"上上周2",
 
-        u"阴历2016年1月1日上午8点0分0秒",
-        u"阴历2016年1月1日上午8点3刻",
         u"阳历2016年第一季度",
         u"去年第一季度",
     ]
 
     special_case = [
-        u"3年后",
+        u"大年三十",
     ]
 
     for case in special_case:
