@@ -114,3 +114,18 @@ def shift_time(v_seed, unit, shift, weekday = None):
 
 
 
+
+def start_duration_to_end(start, duration):
+    sum = 0
+    negtive = False
+    for i in xrange(len(duration)):
+        v = duration[i]
+        if v == None: continue
+        sum += unit2unit(math.fabs(v), i, td.unit.second)
+        if v < 0: negtive = True
+
+    if negtive: sum = -sum
+    sum = sum if sum == 0 else sum - 1 if sum > 0 else sum + 1
+    vector = delta_time(start, td.unit.second, sum)
+
+    return vector

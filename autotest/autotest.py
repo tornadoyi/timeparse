@@ -75,8 +75,8 @@ class AutoTest(object):
                     for i in xrange(len(times)):
                         t, c = times[i], checks[i]
                         if  (t.start != c.start) or \
-                            (t.start != c.start) or \
-                            (t.start != c.start):
+                            (t.end != c.end) or \
+                            (t.duration != c.duration):
                             result = False
 
                 tag = u"{0}-{1}".format(module_name, idx)

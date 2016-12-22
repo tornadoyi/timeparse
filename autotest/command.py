@@ -30,7 +30,7 @@ class sft(cmd):
 
     def __call__(self, args):
         value = self.get_value(self.value)
-        vector = tf.delta_time(timecore.vector(), self.unit, value)
+        vector = tf.delta_time(timecore.vector, self.unit, value)
         return tf.keep_vector(vector, self.unit)
 
 class s_year(sft):
@@ -56,6 +56,43 @@ class s_minute(sft):
 class s_second(sft):
     def __init__(self, value):
         sft.__init__(self, td.unit.second, value)
+
+
+class s_weekday(cmd):
+    def __init__(self, value, shift):
+        self.value = value
+        self.shift = shift
+
+    def __call__(self, args):
+        value = self.get_value(self.value)
+        shift = self.get_value(self.shift)
+        vector = tf.weekday_vector(timecore.vector(), value)
+        vector = tf.delta_time(vector, td.unit.week, shift)
+        return tf.keep_vector(vector, td.unit.day)
+
+
+class s_week(cmd):
+    def __init__(self, value, weekday):
+        self.value = value
+        self.weekday = weekday
+
+    def __call__(self, args):
+        value = self.get_value(self.value)
+        weekday = self.get_value(self.weekday)
+        vector = tf.weekday_vector(timecore.vector, weekday)
+        vector = tf.delta_time(vector, td.unit.week, value)
+        return tf.keep_vector(vector, td.unit.day)
+
+
+class s_week_st(s_week):
+    def __init__(self, value):
+        s_week.__init__(self, value, 1)
+
+
+class s_week_ed(s_week):
+    def __init__(self, value):
+        s_week.__init__(self, value, 7)
+
 
 
 

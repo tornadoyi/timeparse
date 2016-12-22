@@ -260,9 +260,21 @@ class SingleTimeRegularization(GroupRegularization):
 class SingleDurationRegularization(GroupRegularization):
 
     def regularize(self, t, args):
-        unit = t[-1].unit
-        start = tf.keep_vector(args.timecore.vector, unit)
-        start = tf.delta_time(start, unit, t[0].direct)
+
+        start, dur = tf.shift_time(args.timecore.vector, t[0].unit, shift=t[0].direct)
+        if t[0].direct < 0: start = tf.start_duration_to_end(start, dur) if dur != None else start
+
+
+        '''
+        if t[0].unit == td.unit.week or t[0].unit == td.unit.season:
+            vec, dur = tf.shift_time(args.timecore.vector, t[0].unit, shift=t[0].direct)
+            start = tf.start_duration_to_end(vec, dur) if t[0].direct < 0 else vec
+
+        else:
+            start = tf.keep_vector(args.timecore.vector, int(math.ceil(unit)))
+            start = tf.delta_time(start, t[0].unit, t[0].direct)
+        '''
+
         duration = self.duration.regularize(t, args)
         return VectorTime(t.sentence, t.pos_span, start=start, duration=duration)
 

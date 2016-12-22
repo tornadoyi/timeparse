@@ -43,14 +43,17 @@ def demo(args):
     ]
 
     special_case = [
-        u"明年的今天"
+        u"前两天零3小时",
+        u"前2周",
+        u"前两天",
     ]
 
-    for case in cases:
+    for case in special_case:
         print(case)
         times = time_parse(sentence=case, splits=None, pos=0, endpos=len(case), args=args)
         for t in times: print(t)
         print("")
+
 
 
 def test(args):
