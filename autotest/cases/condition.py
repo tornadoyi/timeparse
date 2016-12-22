@@ -17,6 +17,8 @@ args.padding = "recent"
 
 # digit
 add_case(u"15年3月24日2点30分59秒", s_time([2015, 3, 24, 2, 30, 59]))
+add_case(u"今年8月15", s_time([s_year(0), 8, 15]) )
+add_case(u"今天3点一刻", s_time([s_day(0), 3, 15]) )
 
 # digit-no unit
 #add_case(u"2016大年初3", s_time([l2s([2016, 1, 3])]))
@@ -41,7 +43,7 @@ add_case(u"后3个月2天", sd_time([s_month(1)], vector(month=3, day=2) ))
 #add_case(u"周三前", s_time([s_weekday(3, -1)]))
 
 
-# solar
+# lunar
 add_case(u"阴历2016年1月1日", s_time([l2s([2016, 1, 1])]))
 add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
 add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
@@ -51,7 +53,7 @@ add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 
 # holiday
 add_case(u"今年国庆前三天", sd_time([s_year(0), 10, 1], vector(day=3)) )
-add_case(u"去年中秋", sd_time([l2s([s_year(-1), 8, 15])], vector(day=3)) )
+add_case(u"今年圣诞节", sd_time([s_year(0), 12, 25], vector(day=1)) )
 #add_case(u"今年过年", sd_time([l2s([s_year(1), 1, 1])], vector(day=7)) )
 
 
@@ -62,3 +64,16 @@ add_case(u"昨天中午11点", s_time([s_day(-1), 11]) )
 add_case(u"昨天中午1点", s_time([s_day(-1), 13]) )
 add_case(u"昨天晚上11点", s_time([s_day(-1), 23]) )
 add_case(u"昨晚1点", s_time([s_day(0), 1]) )
+
+
+# time
+add_case(u"今年3月倒数第二天", s_time([s_year(0), 3, 30]) )
+add_case(u"今年3月前三天", sd_time([s_year(0), 3, 1], vector(day=3) ) )
+add_case(u"去年中秋", sd_time([l2s([s_year(-1), 8, 15])], vector(day=3)) )
+add_case(u"今天3点后5分钟", sd_time([s_day(0), 3, 59], vector(minute=-5) ) )
+
+
+# duration
+add_case(u"今年前3月零2天", sd_time([s_year(0), 1], vector(month=3, day=2) ) )
+add_case(u"上季度第3天", s_time([s_season_st(-1), 3] ) )
+add_case(u"16年3季度第二个月", s_time([2016, 8]) )

@@ -165,7 +165,7 @@ class TimeRegularization(ChunkRegularization):
 
             # update duration
             if dur != None: fill_vector(dur, duration, unit+1)
-            else: duration[0:int(math.ceil(unit))] = [None] * int(math.ceil(unit))
+            else: duration[0:int(unit+1)] = [None] * int(unit+1)
 
 
         for i in xrange(len(time.units)):

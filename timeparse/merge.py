@@ -88,6 +88,7 @@ class digit_merger(merger):
     def __init__(self):
         merger.__init__(self)
         self.add_back_process(Unit, self.unit_process) # 3年
+        self.add_front_process(Time, self.time_process)  # 3年
 
     def unit_process(self, args, this, other):
         if not this.adjacent(other): return command_keep_2
@@ -98,6 +99,22 @@ class digit_merger(merger):
         else:
             return Time(str, (st, ed), UD(other.value, this.value))
 
+
+    def time_process(self, args, this, other):
+        if not this.adjacent(other): return command_keep_2
+        if other[-1].method != td.method.none: return command_keep_2
+
+        t = copy.deepcopy(other)
+        if this.value == 0.5:
+            if t[-1].unit != td.unit.hour: return command_keep_2
+            t[-1].value += this.value
+
+        else:
+            t.add(UD(t[-1].unit+1, this.value))
+
+        str, st, ed = self.concat_cell_info(this, other)
+        t.pos_span = (st, ed)
+        return t
 
 
 
@@ -311,7 +328,6 @@ class time_merger(merger):
         merger.__init__(self)
         self.add_back_process(Time, self.time_process) # 3月 4日 / 3月 倒数第二天
         self.add_back_process(Duration, self.duration_process) # 3月 前5天
-        self.add_back_process(Digit, self.digit_process) # 8月15  l1 eat l0
 
         self.add_back_process(Holiday, self.add_holiday_year)  # 去年 国庆
 
@@ -336,20 +352,6 @@ class time_merger(merger):
         return StartDuration(str, (st, ed), start=start, duration=duration)
 
 
-    def digit_process(self, args, this, other):
-        if not this.adjacent(other): return command_keep_2
-        t = copy.deepcopy(this)
-        if other.value == 0.5:
-            t[-1].value += other.value
-        elif t[-1].unit < td.unit.second:
-            t.add(other.value, t[-1].unit-1)
-        else:
-            return None
-
-        str, st, ed = self.concat_cell_info(this, other)
-        t.pos_span = (st, ed)
-        return t
-
 
     def add_holiday_year(self, args, this, other):
         if len(this.datas) > 1: return command_keep_2
@@ -362,14 +364,17 @@ class time_merger(merger):
         return holiday
 
 
+
+
+
 @singleton
 class duration_merger(merger):
     def __init__(self):
         merger.__init__(self)
-        self.add_back_process(Duration, self.Duration_process) # 3个月 零2个小时
-        self.add_back_process(Time, self.Duration_process)  # 3个月 零5天
+        self.add_back_process(Duration, self.duration_process) # 3个月 零2个小时
+        self.add_back_process(Time, self.duration_process)  # 3个月 零5天
 
-    def Duration_process(self, args, this, other):
+    def duration_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
