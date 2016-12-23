@@ -123,6 +123,7 @@ def get_datetime_unit(dt, unit):
 def delta_time(v, unit = None, delta = None):
 
     def delta_unit(v, unit, d):
+        d = d or 0
         res = v
         if unit == td.unit.year:
             res[unit] += d

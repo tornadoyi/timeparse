@@ -93,7 +93,7 @@ class digit_merger(merger):
     def unit_process(self, args, this, other):
         if not this.adjacent(other): return command_keep_2
         str, st, ed = self.concat_cell_info(this, other)
-        if this.quantity or other.value == td.unit.week:
+        if this.quantity or other.value == td.unit.week or other.word in td.unit_prefer_duration:
            return  Duration(str, (st, ed), UD(other.value, this.value))
 
         else:

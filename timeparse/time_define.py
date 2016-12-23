@@ -140,7 +140,7 @@ word_class_dict = {
         u"月": unit.month,
         u"日": unit.day, u"天": unit.day, u"号": unit.day,
         u"时": unit.hour, u"h": unit.hour, u"点": unit.hour, u"小时": unit.hour,
-        u"分": unit.minute,
+        u"分": unit.minute, u"分钟": unit.minute,
         u"秒": unit.second,
         u"季": unit.season, u"季度": unit.season,
         u"周": unit.week, u"星期": unit.week, u"礼拜": unit.week,
@@ -266,14 +266,11 @@ word_class_dict = {
     }
 }
 
-class special():
-    day = u"天"
-    half = u"半"
-    month = u"月"
-    year = u"年"
-    week_digit = {u"日": 7, u"天": 7,}
-    lunar_desc = []
-    lunar_unit_day  = u"初"
+
+
+unit_prefer_duration = [u"天", u"分钟"]
+
+
 
 
 class Word(object):

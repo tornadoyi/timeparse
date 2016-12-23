@@ -9,7 +9,7 @@ from timeparse.ex_time import parse as time_parse
 def demo(args):
 
     special_case = [
-        u"5月份和这个月起安卓xiaomi的消消乐的dau和dnu呢",
+        u"昨天和前天的fish的dau，请一天假，假期剩余呢?",
     ]
 
     for case in special_case:
