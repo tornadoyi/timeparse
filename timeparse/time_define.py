@@ -178,6 +178,7 @@ word_class_dict = {
         u"倒数第": (-1, None, -1, None), u"后数第": (-1, None, -1, None),
         u"来": (0, None, None, (-1, 0)),
         u"内": (0, None, None, (-1, 1)), u"近": (0, None, (-1, 1), None),
+        u"这": (0, 0, (-1, 1), None),
     },
 
     wordtype.degree: {

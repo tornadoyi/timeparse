@@ -9,7 +9,7 @@ from timeparse.ex_time import parse as time_parse
 def demo(args):
 
     special_case = [
-        u"本周起8.8.8.8的服务器状况呢",
+        u"5月份和这个月起安卓xiaomi的消消乐的dau和dnu呢",
     ]
 
     for case in special_case:
