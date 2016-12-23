@@ -259,7 +259,7 @@ class SingleTimeRegularization(GroupRegularization):
     def regularize(self, t, args):
         v, duration = self.time.regularize(t, args)
         if duration == None:
-            return VectorTime(t.sentence, t.pos_span, start=v, end=v)
+            return VectorTime(t.sentence, t.pos_span, start=v, end=copy.deepcopy(v))
         else:
             return VectorTime(t.sentence, t.pos_span, start=v, duration=duration)
 
