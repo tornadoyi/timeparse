@@ -139,3 +139,15 @@ class Infinity(Prefer):
         else: assert False
 
         return v
+
+
+
+# ============================================== AmbiguousDirect ============================================== #
+
+class AmbiguousDirect(Prefer):
+    def __init__(self, direct):
+        Prefer.__init__(self)
+        self.direct = direct
+
+    def do(self, st, ed):
+        return self.direct

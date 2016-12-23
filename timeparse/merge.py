@@ -70,7 +70,7 @@ class merger():
 
     def do_both(self, args, this, front, back):
         func = self._process_both.get((front.__class__, back.__class__))
-        if not func: return command_keep_2
+        if not func: return command_keep_3
         return func(args, this, front, back)
 
     def concat_cell_info(self, *cells):
@@ -202,7 +202,9 @@ class direct_merger(merger):
                     other[0].method = relative2method(this.relative)
                     other[0].direct = d_st
 
-                else: assert False # todo
+                else:
+                    other[0].method = relative2method(this.relative)
+                    other[0].direct = args.ambiguous_direct(d_st, d_ed)
 
                 # week check
                 return Duration(str, (st, ed), other.datas)

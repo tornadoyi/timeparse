@@ -138,7 +138,7 @@ class digit_re(time_re):
 class uint_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex = u"([{0}]?)((?:{1})+)".format(
+        ex = u"([{0}]?)((?:{1}))".format(
             td.split_texts(td.wordtype.quantity),
             td.split_texts(td.wordtype.unit))
         self.add_re(ex, self.process)
@@ -190,7 +190,7 @@ class week_re(time_re):
 class relation_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex = u"((?:{0})+)".format(td.split_texts(td.wordtype.relation))
+        ex = u"((?:{0}))".format(td.split_texts(td.wordtype.relation))
         self.add_re(ex, self.process)
 
     def process(self, m, args):
@@ -242,7 +242,7 @@ class direct_re(time_re):
 class special_hour_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex = u"((?:{0})+)".format(td.split_texts(td.wordtype.special_hour))
+        ex = u"((?:{0}))".format(td.split_texts(td.wordtype.special_hour))
         self.add_re(ex, self.process)
 
     def process(self, m, args):
@@ -261,7 +261,7 @@ class special_hour_re(time_re):
 class calendar_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex = u"((?:{0})+)".format(td.split_texts(td.wordtype.calendar))
+        ex = u"((?:{0}))".format(td.split_texts(td.wordtype.calendar))
         self.add_re(ex, self.process)
 
     def process(self, m, args):
@@ -278,7 +278,7 @@ class calendar_re(time_re):
 class holiday_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex = u"((?:{0})+)".format(td.split_texts(td.wordtype.holiday))
+        ex = u"((?:{0}))".format(td.split_texts(td.wordtype.holiday))
         self.add_re(ex, self.process)
 
     def process(self, m, args):
@@ -314,8 +314,8 @@ class seasons_re(time_re):
 class lunar_re(time_re):
     def __init__(self):
         time_re.__init__(self)
-        ex_lunar_month = u"((?:{0})+)".format(td.split_texts(td.wordtype.lunar_month))
-        ex_lunar_day = u"((?:{0})+)((?:{1})+)".format(
+        ex_lunar_month = u"((?:{0}))".format(td.split_texts(td.wordtype.lunar_month))
+        ex_lunar_day = u"((?:{0}))((?:{1})+)".format(
             td.split_texts(td.wordtype.lunar_day),
             td.split_texts(td.wordtype.digit))
         self.add_re(ex_lunar_month, self.process_lunar_month)

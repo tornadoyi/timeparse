@@ -11,6 +11,7 @@ def add_case(sentence, *answers):
 args.infinity = (0, 0, 0, 0, 0, 0)
 args.fulltime = False
 args.padding = "recent"
+args.ambiguous_direct = "history"
 
 
 # ==================================== merge condition ==================================== #
@@ -42,9 +43,8 @@ add_case(u"前3分钟", sd_time([s_minute(-1)], vector(minute=-3) ))
 add_case(u"前3个小时", sd_time([s_hour(-1)], vector(hour=-3) ))
 add_case(u"后3个月2天", sd_time([s_month(1)], vector(month=3, day=2) ))
 add_case(u"去年第一季度", sd_time([s_year(-1), 1], vector(month=3) ))
-
 add_case(u"明年的昨天", s_time([s_year(1), None, s_day(-1)]))
-
+add_case(u"3天内", sd_time([s_day(-1)], vector(day=-3)))
 
 #add_case(u"周三前", s_time([s_weekday(3, -1)]))
 

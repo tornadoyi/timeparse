@@ -73,6 +73,9 @@ def parse_options(g_args):
     # infinity
     args.infinity = prefer.Infinity(g_args.infinity if g_args.infinity != None else (0, 0, 0, 0, 0, 0))
 
+    # ambiguous-direct
+    args.ambiguous_direct = prefer.AmbiguousDirect(1 if args.ambiguous_direct == "future" else -1)
+
     return args
 
 

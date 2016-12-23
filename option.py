@@ -19,6 +19,7 @@ def parse():
     parser.add_argument('--infinity', type=parse_vector, help="set infinit value for each unit")
     parser.add_argument('--fulltime', type=str2bool, default=False)
     parser.add_argument('--padding', choices=['history', 'future', "recent"], type=str, default='recent')
+    parser.add_argument('--ambiguous-direct', choices=['history', 'future'], type=str, default='history')
 
     args = parser.parse_args()
     args = qdict(args)
