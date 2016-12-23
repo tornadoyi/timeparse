@@ -550,7 +550,7 @@ class merge_manager():
 
 
     def print_times(self, times, title):
-        #return
+        return
         print('------------ {0} -------------'.format(title))
         for t in times:
             print(t)
