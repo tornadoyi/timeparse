@@ -378,6 +378,9 @@ class duration_merger(merger):
 
     def duration_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
+        directs = [d.direct for d in other.datas]
+        if directs != [None] * len(directs): return command_keep_2
+
         str, st, ed = self.concat_cell_info(this, other)
         t = copy.deepcopy(this)
         t.add(other.datas)
@@ -397,6 +400,7 @@ class relation_span_merger(merger):
         merger.__init__(self)
         self.add_both_process(Time, Time, self.time_process) # 3月 到 5月
         self.add_both_process(StartEnd, Time, self.expand_start_end)  # （3月到5月）到 7月
+        self.add_both_process(StartEnd, StartEnd, self.merge_start_end)
 
     def time_process(self, args, this, front, back):
         str, st, ed = self.concat_cell_info(this, front, back)
@@ -406,6 +410,9 @@ class relation_span_merger(merger):
         str, st, ed = self.concat_cell_info(this, front, back)
         return StartEnd(str, (st, ed), start=front.start, end = back)
 
+    def merge_start_end(self, args, this, front, back):
+        str, st, ed = self.concat_cell_info(this, front, back)
+        return StartEnd(str, (st, ed), start=front.start, end = back.end)
 
 
 @singleton
@@ -428,6 +435,7 @@ class start_duration_merger(merger):
     def __init__(self):
         merger.__init__(self)
         self.add_back_process(Time, self.expand_duration) # （5月前三天） 零8小时
+        self.add_back_process(Duration, self.expand_duration)  # （前5月） 零8天
 
     def expand_duration(self, args, this, other):
         # merge duration
