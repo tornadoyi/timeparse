@@ -61,10 +61,18 @@ add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 add_case(u"今年国庆前三天", sd_time([s_year(0), 10, 1], vector(day=3)) )
 add_case(u"今年国庆后三天", sd_time([s_year(0), 10, 7], vector(day=-3)) )
 add_case(u"今年圣诞节", sd_time([s_year(0), 12, 25], vector(day=1)) )
-
+add_case(u"今年国庆三天的数据", sd_time([s_year(0), 10, 1], vector(day=3)) )
 add_case(u"今年正月的数据额", s_time(keep(l2s([s_year(0), 1, 1]), month)))
-
+add_case(u"今年国庆倒数第三天", s_time([s_year(0), 10, 5]) )
+add_case(u"今年国庆倒数第三天15点", s_time([s_year(0), 10, 5, 15]) )
+add_case(u"今年国庆第2天", s_time([s_year(0), 10, 2]) )
 #add_case(u"今年过年", sd_time([l2s([s_year(1), 1, 1])], vector(day=7)) )
+
+
+#season
+add_case(u"今年春季第三天", s_time([s_year(0), 1, 3]))
+add_case(u"今年春季倒数第三天", s_time([s_year(0), 3, 29]))
+add_case(u"今年春季", sd_time([s_year(0), 1], vector(month=3)))
 
 
 # special hour

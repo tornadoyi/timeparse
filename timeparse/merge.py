@@ -275,7 +275,7 @@ class holiday_merger(merger):
         # gen start
         rel_dir = qdict(direct=-1, method=td.method.number) if this.day < 0 else {}
         year = [this.year] if this.year != None else []
-        if duration[0].direct >= 0:
+        if duration[0].direct == None or duration[0].direct >= 0:
             start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.month), UD(td.unit.day, this.day, **rel_dir)], this.lunar)
         else:
             start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.month), UD(td.unit.day, this.day+this.duration-1, **rel_dir)], this.lunar)
@@ -289,19 +289,88 @@ class holiday_merger(merger):
         str, st, ed = self.concat_cell_info(this, other)
         other = copy.deepcopy(other)
 
-        day_idx = other.unit_index(td.unit.day)
-        if day_idx != None and other.directs[day_idx].value < 0:
-            assert this.day > 0
-            end_day = this.day + this.duration - 1
-            delta = other[day_idx].direct * other[day_idx].value
-            other[day_idx].value = end_day + delta
-            other[day_idx].direct = td.method.none
+        # update day
+        day = this.day
+        if other[0].direct == None or other[0].direct >= 0:
+            day = this.day + other[0].value - 1 if other[0].unit == td.unit.day else this.day
 
+        else:
+            day = this.day + this.duration - other[0].value if other[0].unit == td.unit.day else this.day + this.duration - 1
+
+        # remove day in other
+        day_idx = other.unit_index(td.unit.day)
+        if day_idx != None: other.remove(day_idx)
+
+        # gen start
         rel_dir = qdict(direct=-1, method=td.method.number) if this.day < 0 else {}
-        start = Time(this.sentence, this.pos_span, UD(td.unit.month, this.month, **rel_dir), this.lunar)
+        year = [this.year] if this.year != None else []
+        start = Time(str, (st, ed), year + [UD(td.unit.month, this.month), UD(td.unit.day, day, **rel_dir)], this.lunar)
         start.add(other.datas)
 
         return start
+
+
+
+
+@singleton
+class season_merger(merger):
+    def __init__(self):
+        merger.__init__(self)
+
+        self.add_back_process(Duration, self.duration_process) # 春季 后三天
+        self.add_back_process(Time, self.time_process)  # 春季 倒数第三天
+
+
+
+    def duration_process(self, args, this, other):
+        if other[0].unit < td.unit.month: return command_keep_2
+
+        str, st, ed = self.concat_cell_info(this, other)
+        duration = copy.deepcopy(other)
+
+        # gen duration
+        if duration[0].method != td.method.none:
+            duration[0].direct *= -1
+            duration[0].method = td.method.number
+
+        # gen start
+        year = [this.year] if this.year != None else []
+        if duration[0].direct == None or duration[0].direct >= 0:
+            start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.start_month)])
+        else:
+            start = Time(this.sentence, this.pos_span, year + [UD(td.unit.month, this.end_month)])
+
+        return StartDuration(str, (st, ed), start, duration)
+
+
+    def time_process(self, args, this, other):
+        if other[0].unit < td.unit.month : return command_keep_2
+
+        str, st, ed = self.concat_cell_info(this, other)
+        other = copy.deepcopy(other)
+
+        # update month
+        month = None
+        if other[0].direct == None or other[0].direct >= 0:
+            month = this.start_month
+            if other[0].unit == td.unit.month: month += other[0].value - 1
+
+        else:
+            month = this.end_month
+            if other[0].unit == td.unit.month: month -= other[0].value + 1
+
+        # remove month in other
+        month_idx = other.unit_index(td.unit.month)
+        if month_idx != None: other.remove(month_idx)
+
+        # gen start
+        year = [this.year] if this.year != None else []
+        start = Time(str, (st, ed), year + [UD(td.unit.month, month)])
+        start.add(other.datas)
+
+        return start
+
+
 
 
 @singleton
@@ -332,6 +401,7 @@ class time_merger(merger):
         self.add_back_process(Duration, self.duration_process) # 3月 前5天
 
         self.add_back_process(Holiday, self.add_holiday_year)  # 去年 国庆
+        self.add_back_process(Season, self.add_holiday_year)  # 去年 冬季
 
     def time_process(self, args, this, other):
         if this.has_unit(other.units): return command_keep_2
@@ -457,6 +527,7 @@ class merge_manager():
             Calendar: calendar_merger(),
             Holiday: holiday_merger(),
             SpecialHour: special_hour_merger(),
+            Season: season_merger(),
 
             Time: time_merger(),
             Duration: duration_merger(),
@@ -558,7 +629,7 @@ class merge_manager():
 
 
     def print_times(self, times, title):
-        return
+        #return
         print('------------ {0} -------------'.format(title))
         for t in times:
             print(t)

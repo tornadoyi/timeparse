@@ -135,6 +135,7 @@ class Season(TimeCell):
         TimeCell.__init__(self, sentence, pos_span)
         self.start_month = start_month
         self.end_month = end_month
+        self.year = None
 
 
     def upgrade(self):
@@ -199,6 +200,9 @@ class TimeChunk(TimeCell):
 
         if type(datas) != list: datas = [datas]
         for d in datas: _add(d)
+
+
+    def remove(self, index): del self.datas[index]
 
 
     def has_unit(self, unit):
