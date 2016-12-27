@@ -24,9 +24,7 @@ sys.setdefaultencoding('utf-8')
 
 
 
-def parse(sentence, splits, pos, endpos, args):
-    if args == None or args.timecore == None:
-        raise Exception("extractor need timecore")
+def parse(sentence, splits = None, pos = None, endpos = None, args = None):
 
     # parse options
     args = parse_options(args)
@@ -60,7 +58,7 @@ def parse_options(g_args):
     args.collector = Collector()
 
     # timecore
-    args.timecore = g_args.timecore
+    args.timecore = g_args.timecore or TimeCore()
 
     # padding
     if g_args.padding == "history": args.padding = prefer.HistoryPadding()
