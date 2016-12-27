@@ -19,14 +19,24 @@
 
 
 # Document
+
+Easy to use
 ```python
     # -*- coding: utf-8 -*-
     import timeparse
-    str = u"昨天下午两点"
-    times = timeparse.parse(str)
+    times = timeparse.parse(u"16年3月2号到7号")
     for t in times: print(t)
-    # (2016-12-26 14, 2016-12-26 14)
+    # (2016-03-02, 2016-03-07)
 ```
+
+Part of sentence extractor
+```python
+    # -*- coding: utf-8 -*-
+    import timeparse
+    times = timeparse.parse(u"16年5月1号 16年3月2", pos=7, endpos=14)
+    for t in times: print(t) # (2016-03-02, 2016-03-02)
+```
+
 
 ## Support
 
