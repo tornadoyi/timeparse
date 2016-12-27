@@ -19,8 +19,14 @@
 
 
 # Document
-
-
+```python
+    # -*- coding: utf-8 -*-
+    import timeparse
+    str = u"昨天下午两点"
+    times = timeparse.parse(str)
+    for t in times: print(t)
+    # (2016-12-26 14, 2016-12-26 14)
+```
 
 ## Support
 
