@@ -242,6 +242,9 @@ class TimeCore(object):
     @property
     def timestamp(self): return self._timestamp
 
+    @timestamp.setter
+    def timestamp(self, ts): self._timestamp = ts
+
     @property
     def datetime(self): return mkdatetime(self._timestamp)
 
