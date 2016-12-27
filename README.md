@@ -34,8 +34,28 @@ Part of sentence extractor
     # -*- coding: utf-8 -*-
     import timeparse
     times = timeparse.parse(u"16年5月1号 16年3月2", pos=7, endpos=14)
-    for t in times: print(t) # (2016-03-02, 2016-03-02)
+    for t in times: print(t) 
+    # (2016-03-02, 2016-03-02)
 ```
+
+Use timecore to fix your current timestamp
+```python
+    # -*- coding: utf-8 -*-
+    from pyplus import *
+    import timeparse
+    import time
+    
+    args = qdict(timecore=timeparse.TimeCore())
+    times = timeparse.parse(u"昨天", args=args)
+    for t in times: print(t)
+    # (2016-12-26, 2016-12-26)
+
+    args.timecore.timestamp = time.time() - 24*3600
+    times = timeparse.parse(u"昨天", args=args)
+    for t in times: print(t)
+    # (2016-12-25, 2016-12-25)
+```
+
 
 
 ## Support
