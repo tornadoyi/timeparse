@@ -129,8 +129,12 @@ class TimeRegularization(ChunkRegularization):
             values = [v for v in values if v != None]
             units = [i for i in xrange(len(values))]
 
-            for i in xrange(int(math.ceil(t[0].unit))):
-                t.add(UD(units[i], values[i]))
+            for i in xrange(len(values)):#xrange(int(math.ceil(t[0].unit))):
+                u, v = units[i], values[i]
+                if t.has_unit(u):
+                    u_idx = t.unit_index(u)
+                    t.remove(u_idx)
+                t.add(UD(u, v))
 
             return t
 

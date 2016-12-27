@@ -192,7 +192,7 @@ class TimeChunk(TimeCell):
             for i in xrange(len(self.datas)):
                 u = self.datas[i].unit
                 assert d.unit != u
-                if d.unit > u: break
+                if d.unit > u: continue
                 self.datas.insert(i, d)
                 return
 

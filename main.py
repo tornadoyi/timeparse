@@ -9,7 +9,7 @@ from timeparse.ex_time import parse as time_parse
 def demo(args):
 
     special_case = [
-        u"今年冬季第三周",
+        u"周9",
     ]
 
     for case in special_case:
