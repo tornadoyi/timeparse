@@ -319,7 +319,7 @@ class lunar_re(time_re):
 
 
         # 年初一 / 初一
-        ex_lunar_month_day = u"((?:{0})*)((?:{1}))((?:{2}))".format(
+        ex_lunar_month_day = u"((?:{0})?)((?:{1}))((?:{2}))".format(
             td.split_texts(td.wordtype.unit, td.unit.year),
             td.split_texts(td.wordtype.lunar_day),
             td.split_texts(td.wordtype.digit))
