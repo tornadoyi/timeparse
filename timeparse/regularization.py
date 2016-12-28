@@ -30,7 +30,7 @@ class ChunkRegularization():
 
     # convert lunar
     def convert_lunar(self, vector, args):
-        v = tf.lunar2solar(vector[0], vector[1], vector[2] or tf.unit_min(td.unit.month))
+        v = tf.lunar2solar(vector[0], vector[1] or tf.unit_min(td.unit.month), vector[2] or tf.unit_min(td.unit.day))
         solar_vector = copy.deepcopy(vector)
         solar_vector[0:3] = v[0:3]
         if vector[2] == None: solar_vector[2] = None
