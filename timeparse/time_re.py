@@ -310,16 +310,22 @@ class seasons_re(time_re):
 
 
 
-# lunar 腊月 / w
+# lunar 腊月 /
 class lunar_re(time_re):
     def __init__(self):
         time_re.__init__(self)
+        # 腊月
         ex_lunar_month = u"((?:{0}))".format(td.split_texts(td.wordtype.lunar_month))
-        ex_lunar_day = u"((?:{0}))((?:{1})+)".format(
+
+
+        # 年初一 / 初一
+        ex_lunar_month_day = u"((?:{0})*)((?:{1}))((?:{2}))".format(
+            td.split_texts(td.wordtype.unit, td.unit.year),
             td.split_texts(td.wordtype.lunar_day),
             td.split_texts(td.wordtype.digit))
+
         self.add_re(ex_lunar_month, self.process_lunar_month)
-        self.add_re(ex_lunar_day, self.process_lunar_day)
+        self.add_re(ex_lunar_month_day, self.process_lunar_month_day)
 
     def process_lunar_month(self, m, args):
         # check
@@ -330,15 +336,25 @@ class lunar_re(time_re):
 
         return Time(str, (st, ed), UD(td.unit.month, month), lunar=True)
 
-    def process_lunar_day(self, m, args):
+
+    def process_lunar_month_day(self, m, args):
         # check
         str, st, ed = self.parse_match(m)
 
         # parse
-        day = self.parse_lunar_month(m.group(1))
-        digit = self.parse_digits(m.group(2))
+        day = self.parse_lunar_month(m.group(2))
+        digit = self.parse_digits(m.group(3))
 
-        return Time(str, (st, ed),  UD(td.unit.day, digit), lunar=True)
+        datas = []
+        # month
+        if m.group(1) != None and len(m.group(1)) != 0:
+            datas.append(UD(td.unit.month, 1))
+
+        # day
+        datas.append(UD(td.unit.day, digit))
+
+        return Time(str, (st, ed), datas, lunar=True)
+
 
 
 
@@ -442,6 +458,14 @@ class format_re(time_re):
         for i in xrange(len(v)):
             datas.append(UD(unit_start + i, v[i]))
         return datas
+
+
+
+
+
+
+
+
 
 
 
