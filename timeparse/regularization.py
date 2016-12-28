@@ -67,11 +67,13 @@ class TimeRegularization(ChunkRegularization):
         vector = self.unit_integralization(vector)
         duration = self.unit_integralization(duration) if duration else duration
 
+        # render units
+        vector = self.render_units(vector, time.pos_span, args)
+
         # convert lunar
         if time.lunar == True: vector = self.convert_lunar(vector, args)
 
-        # render units
-        vector = self.render_units(vector, time.pos_span, args)
+
 
         return vector, duration
 
