@@ -92,11 +92,15 @@ def lunar2solar(year, month, day): return converter.LunarToSolar(year, month, da
 
 def solar2lunar(year, month, day): return converter.SolarToLunar(year, month, day)
 
+def lunar_month_days(year, month): return converter.LunarMonthDays(year, month)
 
 
-def days_of_month(year, month):
-    range = monthrange(int(year), int(month))
-    return range[1]
+def days_of_month(year, month, lunar):
+    if lunar:
+        return lunar_month_days(year, month)
+    else:
+        range = monthrange(int(year), int(month))
+        return range[1]
 
 
 
@@ -208,9 +212,10 @@ def start_time_at_week(year, month, delta_week):
         return delta_time([year, month, max_day], td.unit.day, delta_day)
 
 
-def unit_range_at_time(v, unit):
+def unit_range_at_time(v, unit, lunar=False):
     (min, max) = unit_range(unit)
-    if unit == td.unit.day: max = days_of_month(v[0], v[1])
+    if unit == td.unit.day:
+        max = days_of_month(v[0], v[1], lunar)
     return (min, max)
 
 
@@ -218,17 +223,17 @@ def unit_range_at_time(v, unit):
 
 # ============================================= padding ============================================= #
 
-def padding(v, unit, max_unit):
+def padding(v, unit, max_unit, lunar=False):
     v = copy.deepcopy(v)
     for i in xrange(len(v)):
         if v[i] != None: continue
-        (min, max) = unit_range_at_time(v, i)
+        (min, max) = unit_range_at_time(v, i, lunar)
         v[i] = max if max_unit else min
     return v
 
-def padding_max(v, unit = td.unit.second): return padding(v, unit, True)
+def padding_max(v, unit = td.unit.second, lunar=False): return padding(v, unit, True, lunar)
 
-def padding_min(v, unit = td.unit.second): return padding(v, unit, False)
+def padding_min(v, unit = td.unit.second, lunar=False): return padding(v, unit, False, lunar)
 
 
 

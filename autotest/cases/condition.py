@@ -55,6 +55,8 @@ add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
 add_case(u"2016年大年初3", s_time([l2s([2016, 1, 3])]))
 add_case(u"2016年大年三十", sd_time([l2s([2016, 12, 30])], vector(day=1)))
 add_case(u"15年年初一", s_time([l2s([2015, 1, 1])]))
+add_case(u"阴历16年12月倒数第一天", s_time([2017, 1, 27]))
+
 
 
 # holiday
@@ -66,6 +68,9 @@ add_case(u"今年正月的数据额", s_time(keep(l2s([s_year(0), 1, 1]), month)
 add_case(u"今年国庆倒数第三天", s_time([s_year(0), 10, 5]) )
 add_case(u"今年国庆倒数第三天15点", s_time([s_year(0), 10, 5, 15]) )
 add_case(u"今年国庆第2天", s_time([s_year(0), 10, 2]) )
+add_case(u"16年除夕", sd_time([2017, 1, 27], vector(day=1)) )
+
+
 #add_case(u"今年过年", sd_time([l2s([s_year(1), 1, 1])], vector(day=7)) )
 
 

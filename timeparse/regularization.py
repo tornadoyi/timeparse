@@ -38,15 +38,16 @@ class ChunkRegularization():
 
 
     # render each unit
-    def render_units(self, vector, pos_span, args):
-        vector = copy.deepcopy(vector)
+    def render_units(self, vector, pos_span, args, unit):
+        st, ed = int(unit), int(unit+1)
+        for i in xrange(st, ed, 1):
+            vector = copy.deepcopy(vector)
 
-        # year
-        if vector[td.unit.year] == None: return vector
-        cur_year = args.timecore.unit(td.unit.year)
-        zeros = np.power(10, int(np.log(cur_year) / np.log(10)))
-        if vector[td.unit.year] < zeros: vector[td.unit.year] += cur_year / int(zeros) * int(zeros)
-
+            # year
+            if i == td.unit.year:
+                cur_year = args.timecore.unit(td.unit.year)
+                zeros = np.power(10, int(np.log(cur_year) / np.log(10)))
+                if vector[td.unit.year] < zeros: vector[td.unit.year] += cur_year / int(zeros) * int(zeros)
 
         return vector
 
@@ -66,9 +67,6 @@ class TimeRegularization(ChunkRegularization):
         # integralization
         vector = self.unit_integralization(vector)
         duration = self.unit_integralization(duration) if duration else duration
-
-        # render units
-        vector = self.render_units(vector, time.pos_span, args)
 
         # convert lunar
         if time.lunar == True: vector = self.convert_lunar(vector, args)
@@ -197,7 +195,7 @@ class TimeRegularization(ChunkRegularization):
 
             # relative to parent
             elif method == td.method.number:
-                vec, dur = tf.transform_time_at_the_number_of_unit(vector, duration, unit, value*direct)
+                vec, dur = tf.transform_time_at_the_number_of_unit(vector, duration, unit, value*direct, time.lunar)
                 update_vectors(vec, dur, unit, overlap=True)
 
 
@@ -207,6 +205,11 @@ class TimeRegularization(ChunkRegularization):
                 update_vectors(vec, None, unit)
 
             else: assert False
+
+            # render units
+            vec = self.render_units(vector, time.pos_span, args, unit)
+            update_vectors(vec, None, unit, overlap=True)
+
 
         if duration == tf.time_vector(): duration = None
         return vector, duration

@@ -55,7 +55,7 @@ def modify_time(v, unit, value, type = "min"):
 
 
 
-def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
+def transform_time_at_the_number_of_unit(v_seed, condition, unit, number, lunar):
     vector = duration = None
 
 
@@ -74,11 +74,11 @@ def transform_time_at_the_number_of_unit(v_seed, condition, unit, number):
                 if v_seed[i] == None or condition[i] == None: continue
                 vector[i] = v_seed[i] + condition[i] - 1
 
-            vector = padding_max(vector, reg_unit)
+            vector = padding_max(vector, reg_unit, lunar)
             number += 1
 
         else:
-            vector = padding_min(vector, reg_unit)
+            vector = padding_min(vector, reg_unit, lunar)
             number = np.max((number-1, 0))
 
         vector = delta_time(vector, unit, number)
