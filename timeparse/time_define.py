@@ -14,6 +14,7 @@ class wordtype():
     calendar = 10
     lunar_month = 11
     lunar_day = 12
+    refunit = 13
 
 
 # time unit description of yMdhms
@@ -179,6 +180,11 @@ word_class_dict = {
         u"来": (0, None, None, (-1, 0)),
         u"内": (0, None, None, (-1, 1)), u"近": (0, None, (-1, 1), None),
         u"这": (0, 0, (-1, 1), None),
+    },
+
+    wordtype.refunit: {
+        u"末": -1, u"底": -1,
+        u"初": 1,
     },
 
     wordtype.degree: {

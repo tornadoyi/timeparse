@@ -98,6 +98,8 @@ class time_re(re_parser):
 
     def parse_unit(self, s): return None if s == None or len(s) == 0 else td.property(s, td.wordtype.unit)
 
+    def parse_refunit(self, s): return None if s == None or len(s) == 0 else td.property(s, td.wordtype.refunit)
+
     def parse_quantity(self, s): return None if s == None or len(s) == 0 else td.property(s, td.wordtype.quantity)
 
     def parse_calendar(self, s): return None if s == None or len(s) == 0 else td.property(s, td.wordtype.calendar)
@@ -235,6 +237,22 @@ class direct_re(time_re):
             return Direct(str, (st, ed), direct)
 
 
+
+# referece unit
+class refunit_re(time_re):
+    def __init__(self):
+        time_re.__init__(self)
+        ex = u"((?:{0}))".format(td.split_texts(td.wordtype.refunit))
+        self.add_re(ex, self.process)
+
+    def process(self, m, args):
+        # check
+        str, st, ed = self.parse_match(m)
+
+        # parse
+        value = self.parse_refunit(m.group(1))
+
+        return RefUnit(str, (st, ed), value)
 
 
 
@@ -480,6 +498,7 @@ class parser(object):
         self._classes = []
         self._classes.append(digit_re())
         self._classes.append(uint_re())
+        self._classes.append(refunit_re())
         self._classes.append(week_re())
         self._classes.append(relation_re())
         self._classes.append(direct_re())

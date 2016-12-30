@@ -16,6 +16,9 @@ args.ambiguous_direct = "history"
 
 # ==================================== merge condition ==================================== #
 
+
+
+
 # digit
 add_case(u"15年3月24日2点30分59秒", s_time([2015, 3, 24, 2, 30, 59]))
 add_case(u"今年8月15", s_time([s_year(0), 8, 15]) )
@@ -23,6 +26,12 @@ add_case(u"今天3点一刻", s_time([s_day(0), 3, 15]) )
 
 # digit-no unit
 #add_case(u"2016大年初3", s_time([l2s([2016, 1, 3])]))
+
+
+# referece unit
+add_case(u"上月末", s_time([s_month(-1), n_day(-1)]) )
+add_case(u"16年7月初", s_time([2016, 7, 1]) )
+add_case(u"上季度底", s_time([s_season(-1, True)]) )
 
 
 # direct

@@ -15,17 +15,21 @@ minute = td.unit.minute
 second = td.unit.second
 
 def excute(cmds, args = None):
-    args = args if args != None else qdict(curvector=tf.time_vector())
-    vector = tf.time_vector()
+    args = copy.deepcopy(args) if args != None else qdict(curvector=tf.time_vector())
+    vector = args.curvector
     unit = 0
     for c in cmds:
         if isinstance(c, cmd):
             vec = c(args)
-            for i in xrange(len(vec)):
-                v = vec[i]
-                if v == None: break
-                if vector[i] == None: vector[i] = v
-                if i == unit: unit += 1
+            if type(vec) == list:
+                for i in xrange(len(vec)):
+                    v = vec[i]
+                    if v == None: break
+                    if vector[i] == None: vector[i] = v
+                    if i == unit: unit += 1
+            else:
+                vector[unit] = vec
+                unit += 1
 
         else:
             vector[unit] = c

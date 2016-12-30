@@ -117,6 +117,50 @@ class digit_merger(merger):
         return t
 
 
+@singleton
+class refunit_merger(merger):
+    def __init__(self):
+        merger.__init__(self)
+        self.add_front_process(Unit, self.unit_process) # 月 末
+        self.add_front_process(Time, self.time_process)  # 3月 初
+
+    def unit_process(self, args, this, other):
+        # check
+        if not this.adjacent(other): return command_keep_2
+
+        # concat
+        str, st, ed = self.concat_cell_info(this, other)
+
+        # get values
+        v = this.value
+        value = np.abs(v)
+        unit = other.value
+
+        return Time(str, (st, ed), [
+            UD(unit, 0, method=td.method.shift, direct=0),
+            UD(int(unit+1), value, method=td.method.number, direct=v / value if v != 0 else 0)
+        ])
+
+
+    def time_process(self, args, this, other):
+        # check
+        if not this.adjacent(other): return command_keep_2
+        if other[-1].unit == td.unit.second: return command_keep_2
+
+        # concat
+        str, st, ed = self.concat_cell_info(this, other)
+
+        # get values
+        v = this.value
+        value = np.abs(v)
+        unit = other[-1].unit
+        t = copy.deepcopy(other)
+        t.add(UD(int(unit + 1), value, method=td.method.number, direct=v / value if v != 0 else 0))
+        t.pos_span = (st, ed)
+
+        return t
+
+
 
 @singleton
 class direct_merger(merger):
@@ -523,6 +567,7 @@ class merge_manager():
     def __init__(self):
         self._map = {
             Digit: digit_merger(),
+            RefUnit: refunit_merger(),
             Direct: direct_merger(),
             Calendar: calendar_merger(),
             Holiday: holiday_merger(),

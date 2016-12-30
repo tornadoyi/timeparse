@@ -73,6 +73,17 @@ class Unit(TimeCell):
     def quantity(self): return self._quantity
 
 
+
+class RefUnit(TimeCell):
+    def __init__(self, sentence, pos_span, value):
+        TimeCell.__init__(self, sentence, pos_span)
+        self._value = value
+
+    @property
+    def value(self): return self._value
+
+
+
 class Direct(TimeCell):
     def __init__(self, sentence, pos_span, value):
         TimeCell.__init__(self, sentence, pos_span)
